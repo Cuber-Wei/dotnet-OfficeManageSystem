@@ -1,0 +1,8 @@
+.vs
+.vscode
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+bin
+obj
