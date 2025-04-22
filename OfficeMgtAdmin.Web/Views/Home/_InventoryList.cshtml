@@ -1,0 +1,42 @@
+@model List<OfficeMgtAdmin.Web.Models.Item>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>编码</th>
+                <th>名称</th>
+                <th>类别</th>
+                <th>产地</th>
+                <th>规格</th>
+                <th>型号</th>
+                <th>库存</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Code</td>
+                    <td>@item.ItemName</td>
+                    <td>
+                        @(item.ItemType switch
+                        {
+                            0 => "纸张",
+                            1 => "文具",
+                            2 => "刀具",
+                            3 => "单据",
+                            4 => "礼品",
+                            5 => "其它",
+                            _ => "未知"
+                        })
+                    </td>
+                    <td>@item.Origin</td>
+                    <td>@item.ItemSize</td>
+                    <td>@item.ItemVersion</td>
+                    <td>@item.ItemNum</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div> 

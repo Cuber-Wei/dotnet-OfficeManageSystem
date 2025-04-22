@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="OfficeMgtAdmin.Views.ItemExportPage"
+             Title="物品出库">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            <CollectionView x:Name="ApplyRecordsCollection">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="10" ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
+                            <Label Text="申请人:" Grid.Row="0" Grid.Column="0"/>
+                            <Label Text="{Binding UserId}" Grid.Row="0" Grid.Column="1"/>
+                            
+                            <Label Text="物品:" Grid.Row="0" Grid.Column="2"/>
+                            <Label Text="{Binding Item.ItemName}" Grid.Row="0" Grid.Column="3"/>
+                            
+                            <Label Text="数量:" Grid.Row="0" Grid.Column="4"/>
+                            <Label Text="{Binding ApplyNum}" Grid.Row="0" Grid.Column="5"/>
+                            
+                            <Label Text="申请日期:" Grid.Row="1" Grid.Column="0"/>
+                            <Label Text="{Binding ApplyDate, StringFormat='{0:yyyy-MM-dd}'}" Grid.Row="1" Grid.Column="1"/>
+                            
+                            <Label Text="状态:" Grid.Row="1" Grid.Column="2"/>
+                            <Label Text="{Binding ApplyStatus, Converter={StaticResource ApplyStatusConverter}}" Grid.Row="1" Grid.Column="3"/>
+                            
+                            <Button Text="确认" Grid.Row="1" Grid.Column="4" Clicked="OnConfirmClicked" CommandParameter="{Binding Id}"
+                                    IsVisible="{Binding ApplyStatus, Converter={StaticResource CanConfirmConverter}}"/>
+                            <Button Text="驳回" Grid.Row="1" Grid.Column="5" Clicked="OnRejectClicked" CommandParameter="{Binding Id}"
+                                    IsVisible="{Binding ApplyStatus, Converter={StaticResource CanConfirmConverter}}"/>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage> 

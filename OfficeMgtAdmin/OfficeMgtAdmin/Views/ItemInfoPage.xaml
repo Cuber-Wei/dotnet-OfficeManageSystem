@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="OfficeMgtAdmin.Views.ItemInfoPage"
+             Title="物品信息">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                <Label Text="物品编码:" Grid.Row="0" Grid.Column="0" VerticalOptions="Center"/>
+                <Entry x:Name="CodeEntry" Grid.Row="0" Grid.Column="1" Placeholder="请输入物品编码"/>
+                
+                <Label Text="物品名称:" Grid.Row="1" Grid.Column="0" VerticalOptions="Center"/>
+                <Entry x:Name="NameEntry" Grid.Row="1" Grid.Column="1" Placeholder="请输入物品名称"/>
+                
+                <Label Text="物品类别:" Grid.Row="2" Grid.Column="0" VerticalOptions="Center"/>
+                <Picker x:Name="TypePicker" Grid.Row="2" Grid.Column="1">
+                    <Picker.Items>
+                        <x:String>纸张</x:String>
+                        <x:String>文具</x:String>
+                        <x:String>刀具</x:String>
+                        <x:String>单据</x:String>
+                        <x:String>礼品</x:String>
+                        <x:String>其它</x:String>
+                    </Picker.Items>
+                </Picker>
+                
+                <Label Text="产地:" Grid.Row="3" Grid.Column="0" VerticalOptions="Center"/>
+                <Entry x:Name="OriginEntry" Grid.Row="3" Grid.Column="1" Placeholder="请输入产地"/>
+                
+                <Label Text="规格:" Grid.Row="4" Grid.Column="0" VerticalOptions="Center"/>
+                <Entry x:Name="SizeEntry" Grid.Row="4" Grid.Column="1" Placeholder="请输入规格"/>
+                
+                <Label Text="型号:" Grid.Row="5" Grid.Column="0" VerticalOptions="Center"/>
+                <Entry x:Name="VersionEntry" Grid.Row="5" Grid.Column="1" Placeholder="请输入型号"/>
+                
+                <Label Text="物品图片:" Grid.Row="6" Grid.Column="0" VerticalOptions="Center"/>
+                <Button x:Name="SelectImageButton" Grid.Row="6" Grid.Column="1" Text="选择图片" Clicked="OnSelectImageClicked"/>
+                
+                <Button x:Name="SaveButton" Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Text="保存" Clicked="OnSaveClicked"/>
+            </Grid>
+            
+            <CollectionView x:Name="ItemsCollection" Margin="0,20,0,0">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="10" ColumnDefinitions="Auto,*,Auto">
+                            <Label Text="{Binding Code}" Grid.Column="0"/>
+                            <Label Text="{Binding ItemName}" Grid.Column="1"/>
+                            <Button Text="删除" Grid.Column="2" Clicked="OnDeleteClicked" CommandParameter="{Binding Id}"/>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage> 

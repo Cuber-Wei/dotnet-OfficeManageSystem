@@ -1,0 +1,59 @@
+@model List<OfficeMgtAdmin.Web.Models.Item>
+@{
+    ViewData["Title"] = "库存查询";
+}
+
+<div class="container">
+    <div class="row mb-3">
+        <div class="col">
+            <h2>库存查询</h2>
+        </div>
+        <div class="col-auto">
+            <a href="@Url.Action("Apply")" class="btn btn-primary">申请领用</a>
+            <a href="@Url.Action("MyApplications")" class="btn btn-info">我的申请</a>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <select id="itemType" class="form-select">
+                <option value="">全部类别</option>
+                <option value="0">纸张</option>
+                <option value="1">文具</option>
+                <option value="2">刀具</option>
+                <option value="3">单据</option>
+                <option value="4">礼品</option>
+                <option value="5">其它</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button id="queryBtn" class="btn btn-primary">查询</button>
+        </div>
+    </div>
+
+    <div id="inventoryList">
+        <partial name="_InventoryList" model="Model" />
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#queryBtn').click(function () {
+                var itemType = $('#itemType').val();
+                
+                $.ajax({
+                    url: '@Url.Action("QueryByType")',
+                    type: 'POST',
+                    data: { itemType: itemType },
+                    success: function (response) {
+                        $('#inventoryList').html(response);
+                    },
+                    error: function () {
+                        alert('查询失败，请稍后重试');
+                    }
+                });
+            });
+        });
+    </script>
+} 

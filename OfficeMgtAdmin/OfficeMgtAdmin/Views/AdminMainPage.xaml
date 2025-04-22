@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="OfficeMgtAdmin.Views.AdminMainPage"
+             Title="系统主界面">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            <Button Text="用户维护" Clicked="OnUserMaintenanceClicked" />
+            <Button Text="物品信息" Clicked="OnItemInfoClicked" />
+            <Button Text="物品入库" Clicked="OnImportClicked" />
+            <Button Text="物品出库" Clicked="OnExportClicked" />
+            <Button Text="库存查询" Clicked="OnInventoryQueryClicked" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage> 

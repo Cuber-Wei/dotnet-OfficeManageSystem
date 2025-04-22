@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="OfficeMgtAdmin.Views.InventoryQueryPage"
+             Title="库存查询">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                <Label Text="物品类别:" Grid.Row="0" Grid.Column="0" VerticalOptions="Center"/>
+                <Picker x:Name="TypePicker" Grid.Row="0" Grid.Column="1">
+                    <Picker.Items>
+                        <x:String>全部</x:String>
+                        <x:String>纸张</x:String>
+                        <x:String>文具</x:String>
+                        <x:String>刀具</x:String>
+                        <x:String>单据</x:String>
+                        <x:String>礼品</x:String>
+                        <x:String>其它</x:String>
+                    </Picker.Items>
+                </Picker>
+                
+                <Button x:Name="QueryButton" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="查询" Clicked="OnQueryClicked"/>
+            </Grid>
+            
+            <CollectionView x:Name="ItemsCollection" Margin="0,20,0,0">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="10" ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+                            <Label Text="{Binding Code}" Grid.Column="0"/>
+                            <Label Text="{Binding ItemName}" Grid.Column="1"/>
+                            <Label Text="{Binding ItemType, Converter={StaticResource ItemTypeConverter}}" Grid.Column="2"/>
+                            <Label Text="{Binding ItemNum}" Grid.Column="3"/>
+                            <Button Text="查看明细" Grid.Column="4" Clicked="OnViewDetailsClicked" CommandParameter="{Binding Id}"/>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage> 

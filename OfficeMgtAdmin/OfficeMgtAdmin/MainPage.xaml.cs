@@ -2,24 +2,35 @@
 {
     public partial class MainPage : ContentPage
     {
-        int count = 0;
-
         public MainPage()
         {
             InitializeComponent();
         }
 
-        private void OnCounterClicked(object sender, EventArgs e)
+        private async void OnLoginClicked(object sender, EventArgs e)
         {
-            count++;
+            var user = UserIdEntry.Text?.Trim();
+            var pass = PasswordEntry.Text;
 
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
+            if (string.IsNullOrWhiteSpace(user))
+            {
+                await DisplayAlert("提示", "用户名不能为空", "确定");
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(pass))
+            {
+                await DisplayAlert("提示", "密码不能为空", "确定");
+                return;
+            }
+            if (user == "admin" && pass == "0000")
+            {
+                await DisplayAlert("提示", "登录成功", "确定");
+                Application.Current.MainPage = new NavigationPage(new Views.AdminMainPage());
+            }
             else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
+            {
+                await DisplayAlert("提示", "用户名或密码不正确", "确定");
+            }
         }
     }
-
 }

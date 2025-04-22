@@ -1,0 +1,11 @@
+[
+    {
+        "id": 1,
+        "userId": "admin", 
+        "userName": "admin",
+        "password": "0000",
+        "gender": null,
+        "birthDate": null,
+        "phone": null
+    }
+]
