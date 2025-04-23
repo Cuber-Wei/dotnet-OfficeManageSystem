@@ -21,16 +21,23 @@ namespace OfficeMgtAdmin.Views
 
         private async void LoadApplyRecords()
         {
-            var records = await _context.ApplyRecords
-                .Include(r => r.Item)
-                .Where(r => !r.IsDelete)
-                .OrderByDescending(r => r.ApplyDate)
-                .ToListAsync();
-
-            _applyRecords.Clear();
-            foreach (var record in records)
+            try
             {
-                _applyRecords.Add(record);
+                var records = await _context.ApplyRecords
+                    .Include(r => r.Item)
+                    .Where(r => !r.IsDelete)
+                    .OrderByDescending(r => r.ApplyDate)
+                    .ToListAsync();
+
+                _applyRecords.Clear();
+                foreach (var record in records)
+                {
+                    _applyRecords.Add(record);
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("错误", $"加载申请记录失败: {ex.Message}", "确定");
             }
         }
 
@@ -42,14 +49,26 @@ namespace OfficeMgtAdmin.Views
                 .Include(r => r.Item)
                 .FirstOrDefaultAsync(r => r.Id == recordId);
 
-            if (record != null && record.ApplyStatus == 0)
+            if (record?.Item == null)
             {
-                if (record.Item.ItemNum < record.ApplyNum)
-                {
-                    await DisplayAlert("提示", "库存不足", "确定");
-                    return;
-                }
+                await DisplayAlert("错误", "找不到申请记录或物品信息", "确定");
+                return;
+            }
 
+            if (record.ApplyStatus != 0)
+            {
+                await DisplayAlert("提示", "该申请已处理", "确定");
+                return;
+            }
+
+            if (record.Item.ItemNum < record.ApplyNum)
+            {
+                await DisplayAlert("提示", "库存不足", "确定");
+                return;
+            }
+
+            try
+            {
                 record.ApplyStatus = 1; // 确认
                 record.Item.ItemNum -= record.ApplyNum;
                 record.Item.UpdateTime = DateTime.Now;
@@ -59,6 +78,10 @@ namespace OfficeMgtAdmin.Views
                 await DisplayAlert("提示", "已确认", "确定");
                 LoadApplyRecords();
             }
+            catch (Exception ex)
+            {
+                await DisplayAlert("错误", $"确认失败: {ex.Message}", "确定");
+            }
         }
 
         private async void OnRejectClicked(object sender, EventArgs e)
@@ -67,7 +90,19 @@ namespace OfficeMgtAdmin.Views
             var recordId = (long)button.CommandParameter;
             var record = await _context.ApplyRecords.FindAsync(recordId);
 
-            if (record != null && record.ApplyStatus == 0)
+            if (record == null)
+            {
+                await DisplayAlert("错误", "找不到申请记录", "确定");
+                return;
+            }
+
+            if (record.ApplyStatus != 0)
+            {
+                await DisplayAlert("提示", "该申请已处理", "确定");
+                return;
+            }
+
+            try
             {
                 record.ApplyStatus = 2; // 驳回
                 record.UpdateTime = DateTime.Now;
@@ -75,6 +110,10 @@ namespace OfficeMgtAdmin.Views
                 await _context.SaveChangesAsync();
                 await DisplayAlert("提示", "已驳回", "确定");
                 LoadApplyRecords();
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("错误", $"驳回失败: {ex.Message}", "确定");
             }
         }
     }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OfficeMgtAdmin.Web.Data;
 using OfficeMgtAdmin.Web.Models;
 using System.Text.Json;
+using System.IO;
 
 namespace OfficeMgtAdmin.Web.Controllers;
 
@@ -32,7 +33,8 @@ public class HomeController : Controller
         }
 
         // 从 user.json 读取用户信息
-        var userJson = System.IO.File.ReadAllText("user.json");
+        var userJsonPath = Path.Combine("F:", "code_repository", "dotNetProjects", "OfficeMgtAdmin", "user.json");
+        var userJson = System.IO.File.ReadAllText(userJsonPath);
         var users = JsonSerializer.Deserialize<List<User>>(userJson);
 
         var user = users?.FirstOrDefault(u => u.UserId == userId && u.Password == password);
@@ -97,7 +99,7 @@ public class HomeController : Controller
             return Json(new { success = false, message = "请先登录" });
         }
 
-        var userId = long.Parse(HttpContext.Session.GetString("UserId"));
+        var userId = long.Parse(HttpContext.Session.GetString("UserId") ?? "0");
         var item = await _context.Items.FindAsync(itemId);
 
         if (item == null)
@@ -135,7 +137,7 @@ public class HomeController : Controller
             return RedirectToAction("Index");
         }
 
-        var userId = long.Parse(HttpContext.Session.GetString("UserId"));
+        var userId = long.Parse(HttpContext.Session.GetString("UserId") ?? "0");
         var applications = _context.ApplyRecords
             .Include(a => a.Item)
             .Where(a => a.UserId == userId && !a.IsDelete)

@@ -9,7 +9,7 @@ namespace OfficeMgtAdmin.Views
     {
         private readonly ApplicationDbContext _context;
         private ObservableCollection<Item> _items;
-        private string _selectedImagePath;
+        private string? _selectedImagePath;
 
         public ItemInfoPage(ApplicationDbContext context)
         {
@@ -22,12 +22,25 @@ namespace OfficeMgtAdmin.Views
 
         private async void LoadItems()
         {
-            var items = await _context.Items.Where(i => !i.IsDelete).ToListAsync();
-            _items.Clear();
-            foreach (var item in items)
+            try
             {
-                _items.Add(item);
+                var items = await _context.Items.Where(i => !i.IsDelete).ToListAsync();
+                _items.Clear();
+                foreach (var item in items)
+                {
+                    _items.Add(item);
+                }
             }
+            catch (Exception ex)
+            {
+                await DisplayAlert("错误", $"加载物品数据失败: {ex.Message}", "确定");
+            }
+        }
+
+        private void OnQueryClicked(object sender, EventArgs e)
+        {
+            int? selectedType = TypePicker.SelectedIndex > 0 ? TypePicker.SelectedIndex - 1 : null;
+            LoadItems();
         }
 
         private async void OnSelectImageClicked(object sender, EventArgs e)
@@ -75,24 +88,17 @@ namespace OfficeMgtAdmin.Views
                 IsDelete = false
             };
 
-            _context.Items.Add(item);
-            await _context.SaveChangesAsync();
-            await DisplayAlert("提示", "保存成功", "确定");
-            LoadItems();
-            ClearEntries();
-        }
-
-        private async void OnDeleteClicked(object sender, EventArgs e)
-        {
-            var button = (Button)sender;
-            var itemId = (long)button.CommandParameter;
-            var item = await _context.Items.FindAsync(itemId);
-            if (item != null)
+            try
             {
-                item.IsDelete = true;
+                _context.Items.Add(item);
                 await _context.SaveChangesAsync();
-                await DisplayAlert("提示", "删除成功", "确定");
+                await DisplayAlert("提示", "保存成功", "确定");
                 LoadItems();
+                ClearEntries();
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("错误", $"保存失败: {ex.Message}", "确定");
             }
         }
 
@@ -105,6 +111,32 @@ namespace OfficeMgtAdmin.Views
             SizeEntry.Text = string.Empty;
             VersionEntry.Text = string.Empty;
             _selectedImagePath = null;
+        }
+
+        private async void OnDeleteClicked(object sender, EventArgs e)
+        {
+            var button = (Button)sender;
+            var itemId = (long)button.CommandParameter;
+
+            var confirm = await DisplayAlert("确认", "确定要删除该物品吗？", "确定", "取消");
+            if (confirm)
+            {
+                var item = await _context.Items.FindAsync(itemId);
+                if (item != null)
+                {
+                    item.IsDelete = true;
+                    item.UpdateTime = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                    LoadItems();
+                }
+            }
+        }
+
+        private async void OnEditClicked(object sender, EventArgs e)
+        {
+            var button = (Button)sender;
+            var itemId = (long)button.CommandParameter;
+            await Navigation.PushAsync(new ItemEditPage(_context, itemId));
         }
     }
 } 

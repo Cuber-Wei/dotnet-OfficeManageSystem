@@ -1,39 +1,45 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:OfficeMgtAdmin.Converters"
              x:Class="OfficeMgtAdmin.Views.ItemImportPage"
              Title="物品入库">
-    <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
-            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-                <Label Text="物品:" Grid.Row="0" Grid.Column="0" VerticalOptions="Center"/>
-                <Picker x:Name="ItemPicker" Grid.Row="0" Grid.Column="1" ItemDisplayBinding="{Binding ItemName}"/>
-                
-                <Label Text="购买日期:" Grid.Row="1" Grid.Column="0" VerticalOptions="Center"/>
-                <DatePicker x:Name="ImportDatePicker" Grid.Row="1" Grid.Column="1"/>
-                
-                <Label Text="购买数量:" Grid.Row="2" Grid.Column="0" VerticalOptions="Center"/>
-                <Entry x:Name="ImportNumEntry" Grid.Row="2" Grid.Column="1" Placeholder="请输入购买数量" Keyboard="Numeric"/>
-                
-                <Label Text="单价:" Grid.Row="3" Grid.Column="0" VerticalOptions="Center"/>
-                <Entry x:Name="SinglePriceEntry" Grid.Row="3" Grid.Column="1" Placeholder="请输入单价" Keyboard="Numeric"/>
-                
-                <Button x:Name="SaveButton" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Text="保存" Clicked="OnSaveClicked"/>
-            </Grid>
-            
-            <CollectionView x:Name="ImportRecordsCollection" Margin="0,20,0,0">
-                <CollectionView.ItemTemplate>
+    <ContentPage.Resources>
+        <converters:ItemTypeConverter x:Key="ItemTypeConverter" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*" Padding="20">
+        <VerticalStackLayout Grid.Row="0" Spacing="10">
+            <Label Text="选择物品:" />
+            <ListView x:Name="ItemsCollection" 
+                     HeightRequest="200"
+                     SelectionMode="Single"
+                     ItemSelected="OnItemSelected">
+                <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="10" ColumnDefinitions="Auto,*,Auto,Auto,Auto">
-                            <Label Text="{Binding Item.ItemName}" Grid.Column="0"/>
-                            <Label Text="{Binding ImportDate, StringFormat='{0:yyyy-MM-dd}'}" Grid.Column="1"/>
-                            <Label Text="{Binding ImportNum}" Grid.Column="2"/>
-                            <Label Text="{Binding SinglePrice, StringFormat='{0:C}'}" Grid.Column="3"/>
-                            <Label Text="{Binding TotalPrice, StringFormat='{0:C}'}" Grid.Column="4"/>
-                        </Grid>
+                        <ViewCell>
+                            <Grid Padding="10" ColumnDefinitions="*,Auto,Auto">
+                                <Label Grid.Column="0" Text="{Binding ItemName}" />
+                                <Label Grid.Column="1" Text="{Binding ItemType, Converter={StaticResource ItemTypeConverter}}" Margin="10,0" />
+                                <Label Grid.Column="2" Text="{Binding ItemNum, StringFormat='库存: {0}'}" />
+                            </Grid>
+                        </ViewCell>
                     </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <Label x:Name="ItemLabel" Text="请选择物品" />
+
+            <Label Text="入库日期:" />
+            <DatePicker x:Name="ImportDatePicker" Format="yyyy-MM-dd" />
+
+            <Label Text="入库数量:" />
+            <Entry x:Name="ImportNumEntry" Placeholder="请输入入库数量" Keyboard="Numeric" />
+
+            <Label Text="单价:" />
+            <Entry x:Name="SinglePriceEntry" Placeholder="请输入单价" Keyboard="Numeric" />
+
+            <Button Text="保存" Clicked="OnSaveClicked" Margin="0,20,0,0" />
         </VerticalStackLayout>
-    </ScrollView>
+    </Grid>
 </ContentPage> 

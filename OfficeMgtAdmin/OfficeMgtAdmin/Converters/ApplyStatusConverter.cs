@@ -4,7 +4,7 @@ namespace OfficeMgtAdmin.Converters
 {
     public class ApplyStatusConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is int status)
             {
@@ -13,13 +13,13 @@ namespace OfficeMgtAdmin.Converters
                     0 => "申请中",
                     1 => "已确认",
                     2 => "已驳回",
-                    _ => "未知状态"
+                    _ => "未知"
                 };
             }
-            return "未知状态";
+            return "未知";
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -27,16 +27,16 @@ namespace OfficeMgtAdmin.Converters
 
     public class CanConfirmConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is int status)
             {
-                return status == 0; // Only show buttons when status is "申请中"
+                return status == 0;
             }
             return false;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }

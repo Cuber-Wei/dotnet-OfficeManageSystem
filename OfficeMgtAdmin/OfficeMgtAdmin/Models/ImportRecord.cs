@@ -36,6 +36,6 @@ namespace OfficeMgtAdmin.Models
         public bool IsDelete { get; set; }
 
         [ForeignKey("ItemId")]
-        public virtual Item Item { get; set; }
+        public virtual Item? Item { get; set; }
     }
 } 

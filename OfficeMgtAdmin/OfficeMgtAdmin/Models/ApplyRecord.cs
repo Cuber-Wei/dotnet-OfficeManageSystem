@@ -4,33 +4,42 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OfficeMgtAdmin.Models
 {
+    [Table("apply_record")]
     public class ApplyRecord
     {
         [Key]
+        [Column("id")]
         public long Id { get; set; }
         
         [Required]
+        [Column("userId")]
         public long UserId { get; set; }
         
         [Required]
+        [Column("itemId")]
         public long ItemId { get; set; }
         
         [Required]
+        [Column("applyNum")]
         public int ApplyNum { get; set; }
         
         [Required]
+        [Column("applyStatus")]
         public int ApplyStatus { get; set; } // 0-申请/1-确认/2-驳回
         
+        [Column("applyDate")]
         public DateTime ApplyDate { get; set; }
         
+        [Column("createTime")]
         public DateTime CreateTime { get; set; }
         
+        [Column("updateTime")]
         public DateTime UpdateTime { get; set; }
         
-        [Required]
+        [Column("isDelete")]
         public bool IsDelete { get; set; }
         
         [ForeignKey("ItemId")]
-        public virtual Item Item { get; set; }
+        public virtual Item? Item { get; set; }
     }
 } 

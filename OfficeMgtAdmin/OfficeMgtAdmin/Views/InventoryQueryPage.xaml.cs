@@ -21,17 +21,24 @@ namespace OfficeMgtAdmin.Views
 
         private async void LoadItems(int? itemType = null)
         {
-            var query = _context.Items.Where(i => !i.IsDelete);
-            if (itemType.HasValue)
+            try
             {
-                query = query.Where(i => i.ItemType == itemType.Value);
-            }
+                var query = _context.Items.Where(i => !i.IsDelete);
+                if (itemType.HasValue)
+                {
+                    query = query.Where(i => i.ItemType == itemType.Value);
+                }
 
-            var items = await query.ToListAsync();
-            _items.Clear();
-            foreach (var item in items)
+                var items = await query.ToListAsync();
+                _items.Clear();
+                foreach (var item in items)
+                {
+                    _items.Add(item);
+                }
+            }
+            catch (Exception ex)
             {
-                _items.Add(item);
+                await DisplayAlert("错误", $"加载物品数据失败: {ex.Message}", "确定");
             }
         }
 

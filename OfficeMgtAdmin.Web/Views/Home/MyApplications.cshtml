@@ -27,7 +27,7 @@
                 @foreach (var application in Model)
                 {
                     <tr>
-                        <td>@application.Item.ItemName</td>
+                        <td>@(application.Item?.ItemName ?? "未知物品")</td>
                         <td>@application.ApplyNum</td>
                         <td>@application.ApplyDate.ToString("yyyy-MM-dd")</td>
                         <td>

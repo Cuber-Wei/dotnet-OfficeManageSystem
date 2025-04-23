@@ -8,42 +8,53 @@ namespace OfficeMgtAdmin.Views
     public partial class ItemImportPage : ContentPage
     {
         private readonly ApplicationDbContext _context;
-        private ObservableCollection<ImportRecord> _importRecords;
+        private readonly ObservableCollection<Item> _items;
+        private Item? _selectedItem;
 
         public ItemImportPage(ApplicationDbContext context)
         {
             InitializeComponent();
             _context = context;
-            _importRecords = new ObservableCollection<ImportRecord>();
-            ImportRecordsCollection.ItemsSource = _importRecords;
+            _items = new ObservableCollection<Item>();
+            ItemsCollection.ItemsSource = _items;
+            ImportDatePicker.Date = DateTime.Now;
             LoadItems();
-            LoadImportRecords();
         }
 
         private async void LoadItems()
         {
-            var items = await _context.Items.Where(i => !i.IsDelete).ToListAsync();
-            ItemPicker.ItemsSource = items;
+            try
+            {
+                var items = await _context.Items
+                    .AsNoTracking()
+                    .Where(i => !i.IsDelete)
+                    .OrderBy(i => i.Code)
+                    .ToListAsync();
+
+                _items.Clear();
+                foreach (var item in items)
+                {
+                    _items.Add(item);
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("错误", $"加载物品数据失败: {ex.Message}", "确定");
+            }
         }
 
-        private async void LoadImportRecords()
+        private void OnItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
-            var records = await _context.ImportRecords
-                .Include(r => r.Item)
-                .Where(r => !r.IsDelete)
-                .OrderByDescending(r => r.ImportDate)
-                .ToListAsync();
-
-            _importRecords.Clear();
-            foreach (var record in records)
+            _selectedItem = e.SelectedItem as Item;
+            if (_selectedItem != null)
             {
-                _importRecords.Add(record);
+                ItemLabel.Text = $"已选择: {_selectedItem.ItemName}";
             }
         }
 
         private async void OnSaveClicked(object sender, EventArgs e)
         {
-            if (ItemPicker.SelectedItem == null)
+            if (_selectedItem == null)
             {
                 await DisplayAlert("提示", "请选择物品", "确定");
                 return;
@@ -51,7 +62,7 @@ namespace OfficeMgtAdmin.Views
 
             if (!int.TryParse(ImportNumEntry.Text, out int importNum) || importNum <= 0)
             {
-                await DisplayAlert("提示", "请输入有效的购买数量", "确定");
+                await DisplayAlert("提示", "请输入有效的入库数量", "确定");
                 return;
             }
 
@@ -61,36 +72,50 @@ namespace OfficeMgtAdmin.Views
                 return;
             }
 
-            var selectedItem = (Item)ItemPicker.SelectedItem;
-            var importRecord = new ImportRecord
+            try
             {
-                ItemId = selectedItem.Id,
-                ImportNum = importNum,
-                SinglePrice = singlePrice,
-                ImportDate = ImportDatePicker.Date,
-                CreateTime = DateTime.Now,
-                UpdateTime = DateTime.Now,
-                IsDelete = false
-            };
+                // 重新从数据库获取最新的物品数据
+                var item = await _context.Items.FindAsync(_selectedItem.Id);
+                if (item == null)
+                {
+                    await DisplayAlert("错误", "找不到选中的物品", "确定");
+                    return;
+                }
 
-            _context.ImportRecords.Add(importRecord);
-            
-            // Update item quantity
-            selectedItem.ItemNum += importNum;
-            selectedItem.UpdateTime = DateTime.Now;
-            
-            await _context.SaveChangesAsync();
-            await DisplayAlert("提示", "保存成功", "确定");
-            LoadImportRecords();
-            ClearEntries();
-        }
+                var importRecord = new ImportRecord
+                {
+                    ItemId = item.Id,
+                    ImportNum = importNum,
+                    SinglePrice = singlePrice,
+                    ImportDate = ImportDatePicker.Date,
+                    CreateTime = DateTime.Now,
+                    UpdateTime = DateTime.Now,
+                    IsDelete = false
+                };
 
-        private void ClearEntries()
-        {
-            ItemPicker.SelectedItem = null;
-            ImportDatePicker.Date = DateTime.Now;
-            ImportNumEntry.Text = string.Empty;
-            SinglePriceEntry.Text = string.Empty;
+                _context.ImportRecords.Add(importRecord);
+
+                item.ItemNum += importNum;
+                item.UpdateTime = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+                await DisplayAlert("提示", "入库成功", "确定");
+
+                // 清空输入
+                ImportNumEntry.Text = string.Empty;
+                SinglePriceEntry.Text = string.Empty;
+                ImportDatePicker.Date = DateTime.Now;
+                ItemsCollection.SelectedItem = null;
+                _selectedItem = null;
+                ItemLabel.Text = "请选择物品";
+
+                // 重新加载物品列表
+                LoadItems();
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("错误", $"保存失败: {ex.Message}", "确定");
+            }
         }
     }
 } 
