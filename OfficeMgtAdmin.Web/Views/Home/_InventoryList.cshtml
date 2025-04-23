@@ -4,6 +4,7 @@
     <table class="table table-striped">
         <thead>
             <tr>
+                <th>物品图片</th>
                 <th>编码</th>
                 <th>名称</th>
                 <th>类别</th>
@@ -18,6 +19,12 @@
             @foreach (var item in Model)
             {
                 <tr>
+                    <td style="width: 100px;">
+                        <img src="@(string.IsNullOrEmpty(item.ItemPic) ? "/images/default-item.jpg" : item.ItemPic)" 
+                             class="img-thumbnail" alt="@item.ItemName" style="max-width: 80px; max-height: 80px;"
+                             data-bs-toggle="modal" data-bs-target="#imageModal" 
+                             onclick="showImageModal('@(string.IsNullOrEmpty(item.ItemPic) ? "/images/default-item.jpg" : item.ItemPic)', '@item.ItemName')" />
+                    </td>
                     <td>@item.Code</td>
                     <td>@item.ItemName</td>
                     <td>
@@ -79,4 +86,28 @@
             </div>
         </div>
     </div>
-</div> 
+</div>
+
+<!-- 图片查看模态框 -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" class="img-fluid" alt="" style="max-height: 70vh;" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showImageModal(imagePath, itemName) {
+            document.getElementById('modalImage').src = imagePath;
+            document.getElementById('imageModalTitle').textContent = itemName;
+        }
+    </script>
+} 

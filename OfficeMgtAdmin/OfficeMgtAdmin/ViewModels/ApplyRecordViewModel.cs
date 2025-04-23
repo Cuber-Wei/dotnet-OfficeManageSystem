@@ -18,6 +18,7 @@ namespace OfficeMgtAdmin.ViewModels
         public int ApplyNum => _applyRecord.ApplyNum;
         public int ApplyStatus => _applyRecord.ApplyStatus;
         public DateTime ApplyDate => _applyRecord.ApplyDate;
+        public DateTime UpdateTime => _applyRecord.UpdateTime;
         public string UserName => _user?.UserName ?? "未知";
     }
 } 

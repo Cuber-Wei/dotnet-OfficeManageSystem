@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "新建配置文件",
+    "Projects": [
+      {
+        "Path": "OfficeMgtAdmin\\OfficeMgtAdmin.WinUI\\OfficeMgtAdmin.WinUI.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "OfficeMgtAdmin.Web\\OfficeMgtAdmin.Web.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

@@ -5,6 +5,8 @@ using OfficeMgtAdmin.Web.Data;
 using OfficeMgtAdmin.Web.Models;
 using System.Text.Json;
 using System.IO;
+using OfficeMgtAdmin.Web.Attributes;
+using Microsoft.AspNetCore.Http;
 
 namespace OfficeMgtAdmin.Web.Controllers;
 
@@ -12,11 +14,13 @@ public class HomeController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<HomeController> _logger;
+    private readonly IWebHostEnvironment _webHostEnvironment;
 
-    public HomeController(ApplicationDbContext context, ILogger<HomeController> logger)
+    public HomeController(ApplicationDbContext context, ILogger<HomeController> logger, IWebHostEnvironment webHostEnvironment)
     {
         _context = context;
         _logger = logger;
+        _webHostEnvironment = webHostEnvironment;
     }
 
     public IActionResult Index()
@@ -50,13 +54,9 @@ public class HomeController : Controller
         return Json(new { success = true });
     }
 
+    [Authorize]
     public IActionResult Inventory()
     {
-        if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
-        {
-            return RedirectToAction("Index");
-        }
-
         var items = _context.Items
             .Where(i => !i.IsDelete)
             .ToList();
@@ -64,6 +64,7 @@ public class HomeController : Controller
         return View(items);
     }
 
+    [Authorize]
     [HttpPost]
     public IActionResult QueryByType(int? itemType)
     {
@@ -77,6 +78,7 @@ public class HomeController : Controller
         return PartialView("_InventoryList", items);
     }
 
+    [Authorize]
     public IActionResult Apply()
     {
         if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
@@ -91,6 +93,7 @@ public class HomeController : Controller
         return View(items);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> SubmitApply(long itemId, int applyNum)
     {
@@ -135,13 +138,9 @@ public class HomeController : Controller
         return Json(new { success = true });
     }
 
+    [Authorize]
     public IActionResult MyApplications()
     {
-        if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
-        {
-            return RedirectToAction("Index");
-        }
-
         var userId = long.Parse(HttpContext.Session.GetString("UserId") ?? "0");
         var applications = _context.ApplyRecords
             .Include(a => a.Item)

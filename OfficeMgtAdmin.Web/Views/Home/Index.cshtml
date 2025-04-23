@@ -1,13 +1,14 @@
 ﻿@{
-    ViewData["Title"] = "登录";
+    ViewData["Title"] = "首页";
 }
 
-<div class="container">
+@if (string.IsNullOrEmpty(Context.Session.GetString("UserId")))
+{
     <div class="row justify-content-center mt-5">
         <div class="col-md-6">
             <div class="card">
-                <div class="card-header">
-                    <h3 class="text-center">用户登录</h3>
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">系统登录</h4>
                 </div>
                 <div class="card-body">
                     <form id="loginForm">
@@ -27,27 +28,80 @@
             </div>
         </div>
     </div>
-</div>
+}
+else
+{
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">系统简介</h4>
+                        <p class="card-text">
+                            办公用品管理系统是一个用于管理和追踪办公用品的综合平台。系统提供库存查询、物品申请、申请记录查看等功能，
+                            帮助提高办公用品管理的效率和透明度。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-search"></i>
+                            库存查询
+                        </h5>
+                        <p class="card-text">查看当前所有办公用品的库存情况，并可以直接提交领用申请。</p>
+                        <a asp-controller="Home" asp-action="Inventory" class="btn btn-primary">
+                            进入查询
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-list-check"></i>
+                            我的申请
+                        </h5>
+                        <p class="card-text">查看您提交的所有领用申请记录及其处理状态。</p>
+                        <a asp-controller="Home" asp-action="MyApplications" class="btn btn-primary">
+                            查看记录
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-            $('#loginForm').on('submit', function (e) {
+            $("#loginForm").on("submit", function (e) {
                 e.preventDefault();
                 
                 $.ajax({
-                    url: '@Url.Action("Login")',
+                    url: '@Url.Action("Login", "Home")',
                     type: 'POST',
-                    data: $(this).serialize(),
+                    data: {
+                        userId: $("#userId").val(),
+                        password: $("#password").val()
+                    },
                     success: function (response) {
                         if (response.success) {
-                            window.location.href = '@Url.Action("Inventory")';
+                            window.location.href = '@Url.Action("Index", "Home")';
                         } else {
                             alert(response.message);
                         }
                     },
                     error: function () {
-                        alert('登录失败，请稍后重试');
+                        alert("登录失败，请稍后重试");
                     }
                 });
             });
