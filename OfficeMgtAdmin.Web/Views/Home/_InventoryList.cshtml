@@ -11,6 +11,7 @@
                 <th>规格</th>
                 <th>型号</th>
                 <th>库存</th>
+                <th>操作</th>
             </tr>
         </thead>
         <tbody>
@@ -35,8 +36,47 @@
                     <td>@item.ItemSize</td>
                     <td>@item.ItemVersion</td>
                     <td>@item.ItemNum</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" 
+                                onclick="showApplyModal(@item.Id, '@item.ItemName', @item.ItemNum)">
+                            申请领用
+                        </button>
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
+</div>
+
+<!-- 申请领用模态框 -->
+<div class="modal fade" id="applyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">申请领用</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="applyForm">
+                    <input type="hidden" id="itemId" name="itemId">
+                    <div class="mb-3">
+                        <label class="form-label">物品名称</label>
+                        <input type="text" class="form-control" id="itemName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">当前库存</label>
+                        <input type="text" class="form-control" id="currentStock" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="applyNum" class="form-label">申请数量</label>
+                        <input type="number" class="form-control" id="applyNum" name="applyNum" min="1" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitApply()">提交申请</button>
+            </div>
+        </div>
+    </div>
 </div> 

@@ -5,7 +5,7 @@
     "userName": "admin",
     "password": "0000",
     "gender": null,
-    "birthDate": null,
+    "birthDate": "2025-04-23",
     "phone": null
   },
   {
@@ -14,7 +14,7 @@
     "userName": "\u7EDC\u8FB0",
     "password": "123456",
     "gender": "\u7537",
-    "birthDate": "2004-06-01T00:00:00",
+    "birthDate": "2004-06-01",
     "phone": "1234567890"
   }
 ]

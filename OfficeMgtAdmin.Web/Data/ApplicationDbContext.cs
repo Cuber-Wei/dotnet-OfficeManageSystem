@@ -13,6 +13,7 @@ namespace OfficeMgtAdmin.Web.Data
         public DbSet<Item> Items { get; set; }
         public DbSet<ImportRecord> ImportRecords { get; set; }
         public DbSet<ApplyRecord> ApplyRecords { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -46,6 +47,20 @@ namespace OfficeMgtAdmin.Web.Data
                 entity.HasOne(e => e.Item)
                     .WithMany()
                     .HasForeignKey(e => e.ItemId);
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId);
+            });
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.ToTable("user");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.UserId).IsRequired().HasMaxLength(32);
+                entity.Property(e => e.UserName).IsRequired().HasMaxLength(64);
+                entity.Property(e => e.Password).IsRequired().HasMaxLength(64);
+                entity.Property(e => e.Gender).HasMaxLength(16);
+                entity.Property(e => e.Phone).HasMaxLength(32);
             });
         }
     }

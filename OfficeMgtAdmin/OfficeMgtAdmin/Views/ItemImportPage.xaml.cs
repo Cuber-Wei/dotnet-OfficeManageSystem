@@ -52,6 +52,57 @@ namespace OfficeMgtAdmin.Views
             }
         }
 
+        private async void OnViewDetailsClicked(object sender, EventArgs e)
+        {
+            var button = (Button)sender;
+            var itemId = (long)button.CommandParameter;
+            
+            try
+            {
+                var item = await _context.Items.FindAsync(itemId);
+                if (item == null)
+                {
+                    await DisplayAlert("错误", "找不到物品信息", "确定");
+                    return;
+                }
+
+                var importRecords = await _context.ImportRecords
+                    .Where(r => r.ItemId == itemId && !r.IsDelete)
+                    .OrderByDescending(r => r.ImportDate)
+                    .Take(5)
+                    .ToListAsync();
+
+                var message = $"物品名称: {item.ItemName}\n" +
+                            $"物品编码: {item.Code}\n" +
+                            $"物品类型: {GetItemTypeName(item.ItemType)}\n" +
+                            $"当前库存: {item.ItemNum}\n" +
+                            $"产地: {item.Origin ?? "未设置"}\n" +
+                            $"规格: {item.ItemSize ?? "未设置"}\n" +
+                            $"型号: {item.ItemVersion ?? "未设置"}\n\n" +
+                            "最近5条入库记录:\n" +
+                            string.Join("\n", importRecords.Select(r =>
+                                $"- {r.ImportDate:yyyy-MM-dd} 数量:{r.ImportNum} 单价:{r.SinglePrice:C}"));
+
+                await DisplayAlert($"物品详情 - {item.ItemName}", message, "确定");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("错误", $"获取物品详情失败: {ex.Message}", "确定");
+            }
+        }
+
+        private string GetItemTypeName(int itemType)
+        {
+            return itemType switch
+            {
+                0 => "办公用品",
+                1 => "电子设备",
+                2 => "家具",
+                3 => "其他",
+                _ => "未知"
+            };
+        }
+
         private async void OnSaveClicked(object sender, EventArgs e)
         {
             if (_selectedItem == null)

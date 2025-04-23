@@ -40,5 +40,8 @@ namespace OfficeMgtAdmin.Web.Models
 
         [ForeignKey("ItemId")]
         public virtual Item? Item { get; set; }
+
+        [ForeignKey("UserId")]
+        public virtual User? User { get; set; }
     }
 } 

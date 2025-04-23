@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="OfficeMgtAdmin.Views.ItemRecordPage"
+             Title="物品记录">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+            <Border Stroke="{StaticResource Primary}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 5"
+                    Padding="15"
+                    Margin="0,0,0,20">
+                <Grid RowDefinitions="Auto,Auto" RowSpacing="10">
+                    <Label x:Name="ItemInfoLabel" 
+                           Grid.Row="0"
+                           FontSize="Large"
+                           FontAttributes="Bold"/>
+                    <Label x:Name="InventoryLabel" 
+                           Grid.Row="1"
+                           FontSize="Medium"/>
+                </Grid>
+            </Border>
+
+            <Border Stroke="{StaticResource Primary}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 5"
+                    Padding="15">
+                <Grid RowDefinitions="Auto,*,Auto,*">
+                    <Label Text="入库记录" 
+                           FontSize="Large" 
+                           Grid.Row="0" 
+                           Margin="0,0,0,10"/>
+
+                    <CollectionView x:Name="ImportRecordsCollection" 
+                                   Grid.Row="1">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,5"
+                                        Stroke="{StaticResource Gray300}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 5"
+                                        Padding="10">
+                                    <Grid ColumnDefinitions="120,80,100,*" 
+                                          ColumnSpacing="10">
+                                        <Label Text="{Binding ImportDate, StringFormat='{0:yyyy-MM-dd}'}" 
+                                               Grid.Column="0" 
+                                               VerticalOptions="Center"/>
+                                        <Label Text="{Binding ImportNum}" 
+                                               Grid.Column="1" 
+                                               VerticalOptions="Center"
+                                               HorizontalOptions="End"/>
+                                        <Label Text="{Binding SinglePrice, StringFormat='{0:C}'}" 
+                                               Grid.Column="2" 
+                                               VerticalOptions="Center"
+                                               HorizontalOptions="End"/>
+                                        <Label Text="{Binding Remark}" 
+                                               Grid.Column="3" 
+                                               VerticalOptions="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <Label Text="领用记录" 
+                           FontSize="Large" 
+                           Grid.Row="2" 
+                           Margin="0,20,0,10"/>
+
+                    <CollectionView x:Name="ApplyRecordsCollection" 
+                                   Grid.Row="3">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,5"
+                                        Stroke="{StaticResource Gray300}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 5"
+                                        Padding="10">
+                                    <Grid ColumnDefinitions="120,80,100,*" 
+                                          ColumnSpacing="10">
+                                        <Label Text="{Binding ApplyDate, StringFormat='{0:yyyy-MM-dd}'}" 
+                                               Grid.Column="0" 
+                                               VerticalOptions="Center"/>
+                                        <Label Text="{Binding ApplyNum}" 
+                                               Grid.Column="1" 
+                                               VerticalOptions="Center"
+                                               HorizontalOptions="End"/>
+                                        <Label Text="{Binding ApplyStatus, Converter={StaticResource ApplyStatusConverter}}" 
+                                               Grid.Column="2" 
+                                               VerticalOptions="Center"/>
+                                        <Label Text="{Binding Remark}" 
+                                               Grid.Column="3" 
+                                               VerticalOptions="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage> 

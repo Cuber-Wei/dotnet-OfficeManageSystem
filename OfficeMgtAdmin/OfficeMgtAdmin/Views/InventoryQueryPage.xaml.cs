@@ -52,32 +52,43 @@ namespace OfficeMgtAdmin.Views
         {
             var button = (Button)sender;
             var itemId = (long)button.CommandParameter;
-            var item = await _context.Items.FindAsync(itemId);
-            
+            var item = _items.FirstOrDefault(i => i.Id == itemId);
+
             if (item != null)
             {
-                var importRecords = await _context.ImportRecords
-                    .Where(r => r.ItemId == itemId && !r.IsDelete)
-                    .OrderByDescending(r => r.ImportDate)
-                    .ToListAsync();
+                var message = $"物品编码: {item.Code}\n" +
+                             $"物品名称: {item.ItemName}\n" +
+                             $"物品类别: {GetItemTypeName(item.ItemType)}\n" +
+                             $"产地: {item.Origin ?? "未设置"}\n" +
+                             $"规格: {item.ItemSize ?? "未设置"}\n" +
+                             $"型号: {item.ItemVersion ?? "未设置"}\n" +
+                             $"当前库存: {item.ItemNum}\n" +
+                             $"创建时间: {item.CreateTime:yyyy-MM-dd HH:mm:ss}\n" +
+                             $"更新时间: {item.UpdateTime:yyyy-MM-dd HH:mm:ss}";
 
-                var applyRecords = await _context.ApplyRecords
-                    .Where(r => r.ItemId == itemId && !r.IsDelete)
-                    .OrderByDescending(r => r.ApplyDate)
-                    .ToListAsync();
-
-                var message = $"物品: {item.ItemName}\n" +
-                            $"编码: {item.Code}\n" +
-                            $"库存: {item.ItemNum}\n\n" +
-                            "入库记录:\n" +
-                            string.Join("\n", importRecords.Select(r => 
-                                $"- {r.ImportDate:yyyy-MM-dd} 数量: {r.ImportNum} 单价: {r.SinglePrice:C}")) +
-                            "\n\n领用记录:\n" +
-                            string.Join("\n", applyRecords.Select(r => 
-                                $"- {r.ApplyDate:yyyy-MM-dd} 数量: {r.ApplyNum} 状态: {(r.ApplyStatus == 0 ? "申请中" : r.ApplyStatus == 1 ? "已确认" : "已驳回")}"));
-
-                await DisplayAlert("物品明细", message, "确定");
+                await DisplayAlert($"物品详情 - {item.ItemName}", message, "确定");
             }
+        }
+
+        private async void OnViewRecordsClicked(object sender, EventArgs e)
+        {
+            var button = (Button)sender;
+            var itemId = (long)button.CommandParameter;
+            await Navigation.PushAsync(new ItemRecordPage(_context, itemId));
+        }
+
+        private string GetItemTypeName(int itemType)
+        {
+            return itemType switch
+            {
+                0 => "纸张",
+                1 => "文具",
+                2 => "刀具",
+                3 => "单据",
+                4 => "礼品",
+                5 => "其它",
+                _ => "未知"
+            };
         }
     }
 } 

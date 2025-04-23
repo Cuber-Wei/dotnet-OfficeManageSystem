@@ -4,48 +4,187 @@
              x:Class="OfficeMgtAdmin.Views.UserMaintenancePage"
              Title="用户维护">
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
-            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-                <Label Text="用户ID:" Grid.Row="0" Grid.Column="0" VerticalOptions="Center"/>
-                <Entry x:Name="UserIdEntry" Grid.Row="0" Grid.Column="1" Placeholder="请输入用户ID"/>
-                
-                <Label Text="密码:" Grid.Row="1" Grid.Column="0" VerticalOptions="Center"/>
-                <Entry x:Name="PasswordEntry" Grid.Row="1" Grid.Column="1" Placeholder="请输入密码"/>
-                
-                <Label Text="姓名:" Grid.Row="2" Grid.Column="0" VerticalOptions="Center"/>
-                <Entry x:Name="UserNameEntry" Grid.Row="2" Grid.Column="1" Placeholder="请输入姓名"/>
-                
-                <Label Text="性别:" Grid.Row="3" Grid.Column="0" VerticalOptions="Center"/>
-                <Picker x:Name="GenderPicker" Grid.Row="3" Grid.Column="1">
-                    <Picker.Items>
-                        <x:String>男</x:String>
-                        <x:String>女</x:String>
-                    </Picker.Items>
-                </Picker>
-                
-                <Label Text="出生日期:" Grid.Row="4" Grid.Column="0" VerticalOptions="Center"/>
-                <DatePicker x:Name="BirthDatePicker" Grid.Row="4" Grid.Column="1"/>
-                
-                <Label Text="联系电话:" Grid.Row="5" Grid.Column="0" VerticalOptions="Center"/>
-                <Entry x:Name="PhoneEntry" Grid.Row="5" Grid.Column="1" Placeholder="请输入联系电话" Keyboard="Telephone"/>
-                
-                <Button x:Name="SaveButton" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Text="保存" Clicked="OnSaveClicked"/>
+        <VerticalStackLayout Spacing="10" Padding="20">
+            <!-- 登录界面 -->
+            <Grid x:Name="LoginGrid" RowSpacing="10" ColumnSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Text="管理员登录" Grid.Row="0" Grid.ColumnSpan="2" 
+                       HorizontalOptions="Center" FontSize="24" Margin="0,0,0,20"/>
+
+                <Label Text="用户ID:" Grid.Row="1" Grid.Column="0" 
+                       VerticalOptions="Center"/>
+                <Entry x:Name="LoginUserIdEntry" Grid.Row="1" Grid.Column="1" 
+                       Placeholder="请输入管理员ID"/>
+
+                <Label Text="密码:" Grid.Row="2" Grid.Column="0" 
+                       VerticalOptions="Center"/>
+                <Entry x:Name="LoginPasswordEntry" Grid.Row="2" Grid.Column="1" 
+                       Placeholder="请输入密码" IsPassword="True"/>
+
+                <Button Text="登录" Grid.Row="3" Grid.ColumnSpan="2" 
+                        Clicked="OnLoginClicked" HorizontalOptions="Center"/>
             </Grid>
-            
-            <CollectionView x:Name="UsersCollection" Margin="0,20,0,0">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Padding="10" ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
-                            <Label Text="{Binding UserId}" Grid.Column="0"/>
-                            <Label Text="{Binding UserName}" Grid.Column="1"/>
-                            <Label Text="{Binding Gender}" Grid.Column="2"/>
-                            <Label Text="{Binding BirthDate, StringFormat='{0:yyyy-MM-dd}'}" Grid.Column="3"/>
-                            <Label Text="{Binding Phone}" Grid.Column="4"/>
-                            <Button Text="删除" Grid.Column="5" Clicked="OnDeleteClicked" CommandParameter="{Binding UserId}"/>
+
+            <!-- 主界面 -->
+            <Grid x:Name="MainGrid" RowSpacing="10" ColumnSpacing="10">
+                <Grid RowDefinitions="Auto,*" Padding="20">
+                    <Border Grid.Row="0"
+                            Stroke="{StaticResource Primary}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 5"
+                            Padding="15"
+                            Margin="0,0,0,20">
+                        <Grid ColumnDefinitions="Auto,*" 
+                              RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" 
+                              ColumnSpacing="15" 
+                              RowSpacing="20">
+                            <Label Text="用户ID:" 
+                                   Grid.Row="0" 
+                                   Grid.Column="0" 
+                                   VerticalOptions="Center"/>
+                            <Entry x:Name="UserIdEntry" 
+                                   Grid.Row="0" 
+                                   Grid.Column="1" 
+                                   Placeholder="请输入用户ID"/>
+
+                            <Label Text="密码:" 
+                                   Grid.Row="1" 
+                                   Grid.Column="0" 
+                                   VerticalOptions="Center"/>
+                            <Entry x:Name="PasswordEntry" 
+                                   Grid.Row="1" 
+                                   Grid.Column="1" 
+                                   Placeholder="请输入密码" 
+                                   IsPassword="True"/>
+
+                            <Label Text="姓名:" 
+                                   Grid.Row="2" 
+                                   Grid.Column="0" 
+                                   VerticalOptions="Center"/>
+                            <Entry x:Name="UserNameEntry" 
+                                   Grid.Row="2" 
+                                   Grid.Column="1" 
+                                   Placeholder="请输入姓名"/>
+
+                            <Label Text="性别:" 
+                                   Grid.Row="3" 
+                                   Grid.Column="0" 
+                                   VerticalOptions="Center"/>
+                            <Picker x:Name="GenderPicker" 
+                                    Grid.Row="3" 
+                                    Grid.Column="1">
+                                <Picker.Items>
+                                    <x:String>男</x:String>
+                                    <x:String>女</x:String>
+                                </Picker.Items>
+                            </Picker>
+
+                            <Label Text="出生日期:" 
+                                   Grid.Row="4" 
+                                   Grid.Column="0" 
+                                   VerticalOptions="Center"/>
+                            <DatePicker x:Name="BirthDatePicker" 
+                                       Grid.Row="4" 
+                                       Grid.Column="1"
+                                       Format="yyyy-MM-dd"/>
+
+                            <Label Text="联系电话:" 
+                                   Grid.Row="5" 
+                                   Grid.Column="0" 
+                                   VerticalOptions="Center"/>
+                            <Entry x:Name="PhoneEntry" 
+                                   Grid.Row="5" 
+                                   Grid.Column="1" 
+                                   Placeholder="请输入联系电话" 
+                                   Keyboard="Telephone"/>
+
+                            <Button Text="保存" 
+                                    Grid.Row="6" 
+                                    Grid.Column="0" 
+                                    Grid.ColumnSpan="2" 
+                                    WidthRequest="200"
+                                    Clicked="OnSaveClicked"/>
                         </Grid>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                    </Border>
+
+                    <Border Grid.Row="1"
+                            Stroke="{StaticResource Primary}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 5"
+                            Padding="15">
+                        <Grid RowDefinitions="Auto,*">
+                            <Label Text="用户列表" 
+                                   FontSize="Large" 
+                                   Grid.Row="0" 
+                                   Margin="0,0,0,10"/>
+
+                            <CollectionView x:Name="UsersCollection" 
+                                           Grid.Row="1">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,5"
+                                                Stroke="{StaticResource Gray300}"
+                                                StrokeThickness="1"
+                                                StrokeShape="RoundRectangle 5"
+                                                Padding="10">
+                                            <Grid ColumnDefinitions="100,120,60,100,100,Auto,Auto,Auto" 
+                                                  ColumnSpacing="10">
+                                                <Label Text="{Binding UserId}" 
+                                                       Grid.Column="0" 
+                                                       VerticalOptions="Center"/>
+                                                <Label Text="{Binding UserName}" 
+                                                       Grid.Column="1" 
+                                                       VerticalOptions="Center"/>
+                                                <Label Text="{Binding Gender}" 
+                                                       Grid.Column="2" 
+                                                       VerticalOptions="Center"/>
+                                                <Label Text="{Binding BirthDate, StringFormat='{0:yyyy-MM-dd}'}" 
+                                                       Grid.Column="3" 
+                                                       VerticalOptions="Center"/>
+                                                <Label Text="{Binding Phone}" 
+                                                       Grid.Column="4" 
+                                                       VerticalOptions="Center"/>
+
+                                                <Button Text="详情" 
+                                                        Grid.Column="5"
+                                                        Clicked="OnViewDetailsClicked"
+                                                        CommandParameter="{Binding UserId}"
+                                                        Margin="5,0"/>
+
+                                                <Button Text="编辑" 
+                                                        Grid.Column="6"
+                                                        Clicked="OnEditClicked"
+                                                        CommandParameter="{Binding UserId}"
+                                                        Margin="5,0"/>
+
+                                                <Button Text="删除" 
+                                                        Grid.Column="7"
+                                                        Clicked="OnDeleteClicked"
+                                                        CommandParameter="{Binding UserId}"
+                                                        BackgroundColor="{StaticResource Error}"
+                                                        Margin="5,0"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+            <!-- Add logout button at the bottom -->
+            <Button Text="退出登录" Clicked="OnLogoutClicked" 
+                    HorizontalOptions="End" Margin="0,20,0,0"/>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage> 

@@ -44,7 +44,7 @@ public class HomeController : Controller
         }
 
         // 存储用户信息到 Session
-        HttpContext.Session.SetString("UserId", user.UserId);
+        HttpContext.Session.SetString("UserId", user.Id.ToString());
         HttpContext.Session.SetString("UserName", user.UserName);
 
         return Json(new { success = true });
@@ -112,6 +112,11 @@ public class HomeController : Controller
             return Json(new { success = false, message = "申请数量必须大于0" });
         }
 
+        if (item.ItemNum < applyNum)
+        {
+            return Json(new { success = false, message = "库存不足" });
+        }
+
         var applyRecord = new ApplyRecord
         {
             UserId = userId,
@@ -145,5 +150,11 @@ public class HomeController : Controller
             .ToList();
 
         return View(applications);
+    }
+
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Error()
+    {
+        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }
