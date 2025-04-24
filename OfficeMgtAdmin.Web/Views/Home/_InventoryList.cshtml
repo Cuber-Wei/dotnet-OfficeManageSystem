@@ -18,12 +18,18 @@
         <tbody>
             @foreach (var item in Model)
             {
+                var imagePath = string.IsNullOrEmpty(item.ItemPic) ? "/images/default-item.jpg" : item.ItemPic;
+                
                 <tr>
                     <td style="width: 100px;">
-                        <img src="@(string.IsNullOrEmpty(item.ItemPic) ? "/images/default-item.jpg" : item.ItemPic)" 
-                             class="img-thumbnail" alt="@item.ItemName" style="max-width: 80px; max-height: 80px;"
-                             data-bs-toggle="modal" data-bs-target="#imageModal" 
-                             onclick="showImageModal('@(string.IsNullOrEmpty(item.ItemPic) ? "/images/default-item.jpg" : item.ItemPic)', '@item.ItemName')" />
+                        <img data-lazy
+                             data-src="@imagePath" 
+                             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"
+                             class="item-thumbnail" 
+                             alt="@item.ItemName" 
+                             data-bs-toggle="modal" 
+                             data-bs-target="#imageModal" 
+                             onclick="showImageModal('@imagePath', '@item.ItemName')" />
                     </td>
                     <td>@item.Code</td>
                     <td>@item.ItemName</td>

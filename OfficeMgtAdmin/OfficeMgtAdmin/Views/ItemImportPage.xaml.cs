@@ -20,7 +20,73 @@ namespace OfficeMgtAdmin.Views
             _items = new ObservableCollection<Item>();
             ItemsCollection.ItemsSource = _items;
             ImportDatePicker.Date = DateTime.Now;
+            
+            // 设置输入事件处理
+            ImportNumEntry.TextChanged += OnImportNumTextChanged;
+            SinglePriceEntry.TextChanged += OnSinglePriceTextChanged;
+            
             LoadItems();
+        }
+
+        // 验证入库数量不为负数
+        private void OnImportNumTextChanged(object? sender, TextChangedEventArgs e)
+        {
+            // 如果为空则跳过验证
+            if (string.IsNullOrEmpty(e.NewTextValue))
+                return;
+            
+            // 尝试解析为数字
+            if (int.TryParse(e.NewTextValue, out int value))
+            {
+                // 如果是负数，将其改为0并提示
+                if (value < 0)
+                {
+                    ImportNumEntry.Text = "0";
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        await DisplayAlert("提示", "入库数量不能为负数，已自动更正为0", "确定");
+                    });
+                }
+            }
+            // 如果输入的不是有效数字，恢复之前的值或设为0
+            else if (!string.IsNullOrEmpty(e.NewTextValue))
+            {
+                ImportNumEntry.Text = string.IsNullOrEmpty(e.OldTextValue) ? "0" : e.OldTextValue;
+            }
+        }
+
+        // 验证单价不为负数
+        private void OnSinglePriceTextChanged(object? sender, TextChangedEventArgs e)
+        {
+            // 如果为空则跳过验证
+            if (string.IsNullOrEmpty(e.NewTextValue))
+                return;
+            
+            // 允许小数点输入
+            if (e.NewTextValue == ".")
+            {
+                SinglePriceEntry.Text = "0.";
+                return;
+            }
+            
+            // 尝试解析为小数
+            if (decimal.TryParse(e.NewTextValue, out decimal value))
+            {
+                // 如果是负数，将其改为0并提示
+                if (value < 0)
+                {
+                    SinglePriceEntry.Text = "0";
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        await DisplayAlert("提示", "单价不能为负数，已自动更正为0", "确定");
+                    });
+                }
+            }
+            // 如果输入的不是有效小数，恢复之前的值或设为0
+            else if (!string.IsNullOrEmpty(e.NewTextValue))
+            {
+                SinglePriceEntry.Text = string.IsNullOrEmpty(e.OldTextValue) ? "0" : e.OldTextValue;
+            }
         }
 
         private async void LoadItems()
@@ -51,6 +117,40 @@ namespace OfficeMgtAdmin.Views
             if (_selectedItem != null)
             {
                 ItemLabel.Text = $"已选择: {_selectedItem.ItemName}";
+                CalculateTotalPrice();
+            }
+        }
+
+        // 当数量或单价变化时计算总价
+        private void OnNumOrPriceChanged(object? sender, TextChangedEventArgs e)
+        {
+            CalculateTotalPrice();
+        }
+
+        // 计算总价并更新显示
+        private void CalculateTotalPrice()
+        {
+            try
+            {
+                if (int.TryParse(ImportNumEntry.Text, out int importNum) && 
+                    decimal.TryParse(SinglePriceEntry.Text, out decimal singlePrice))
+                {
+                    decimal totalPrice = importNum * singlePrice;
+                    
+                    TotalPriceLabel.Text = totalPrice.ToString("0.00");
+                    
+                    TotalPriceLabel.TextColor = totalPrice > 0 ? Colors.Green : Colors.Black;
+                }
+                else
+                {
+                    TotalPriceLabel.Text = "0.00";
+                    TotalPriceLabel.TextColor = Colors.Black;
+                }
+            }
+            catch
+            {
+                TotalPriceLabel.Text = "0.00";
+                TotalPriceLabel.TextColor = Colors.Black;
             }
         }
 
@@ -64,7 +164,6 @@ namespace OfficeMgtAdmin.Views
                 await _semaphore.WaitAsync();
                 try
                 {
-                    // 获取物品的新实例，使用 AsNoTracking 避免跟踪冲突
                     var freshItem = await _context.Items
                         .AsNoTracking()
                         .FirstOrDefaultAsync(i => i.Id == itemId);
@@ -123,7 +222,6 @@ namespace OfficeMgtAdmin.Views
 
             try
             {
-                // 重新从数据库获取最新的物品数据
                 var item = await _context.Items.FindAsync(_selectedItem.Id);
                 if (item == null)
                 {
@@ -150,15 +248,15 @@ namespace OfficeMgtAdmin.Views
                 await _context.SaveChangesAsync();
                 await DisplayAlert("提示", "入库成功", "确定");
 
-                // 清空输入
                 ImportNumEntry.Text = string.Empty;
                 SinglePriceEntry.Text = string.Empty;
                 ImportDatePicker.Date = DateTime.Now;
                 ItemsCollection.SelectedItem = null;
                 _selectedItem = null;
                 ItemLabel.Text = "请选择物品";
+                TotalPriceLabel.Text = "0.00";
+                TotalPriceLabel.TextColor = Colors.Black;
 
-                // 重新加载物品列表
                 LoadItems();
             }
             catch (Exception ex)

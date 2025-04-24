@@ -15,7 +15,7 @@
                 <Label Text="选择物品:" FontSize="16" FontAttributes="Bold" />
                 <Frame BorderColor="Gray" Padding="0" CornerRadius="5" HasShadow="True">
                     <ListView x:Name="ItemsCollection" 
-                             HeightRequest="400"
+                             HeightRequest="750"
                              SelectionMode="Single"
                              ItemSelected="OnItemSelected">
                         <ListView.ItemTemplate>
@@ -52,7 +52,7 @@
             <!-- 右侧入库表单 -->
             <VerticalStackLayout Grid.Column="2" Grid.Row="0" Spacing="15" MinimumWidthRequest="300">
                 <Label Text="入库信息" FontSize="16" FontAttributes="Bold" />
-                <Frame BorderColor="Gray" Padding="15" CornerRadius="5" HasShadow="True">
+                <Frame BorderColor="Gray" Padding="15" CornerRadius="5" HasShadow="True" HeightRequest="750">
                     <VerticalStackLayout Spacing="15">
                         <Label x:Name="ItemLabel" 
                                Text="请选择物品" 
@@ -75,7 +75,8 @@
                                    Placeholder="请输入入库数量" 
                                    Keyboard="Numeric"
                                    TextColor="Black"
-                                   BackgroundColor="#f0f0f0" />
+                                   BackgroundColor="#f0f0f0"
+                                   TextChanged="OnNumOrPriceChanged" />
                         </VerticalStackLayout>
 
                         <VerticalStackLayout Spacing="5">
@@ -84,7 +85,18 @@
                                    Placeholder="请输入单价" 
                                    Keyboard="Numeric"
                                    TextColor="Black"
-                                   BackgroundColor="#f0f0f0" />
+                                   BackgroundColor="#f0f0f0"
+                                   TextChanged="OnNumOrPriceChanged" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="总价:" />
+                            <Label x:Name="TotalPriceLabel"
+                                   Text="0.00"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="#512BD4"
+                                   Padding="10,5" />
                         </VerticalStackLayout>
 
                         <Button Text="保存" 

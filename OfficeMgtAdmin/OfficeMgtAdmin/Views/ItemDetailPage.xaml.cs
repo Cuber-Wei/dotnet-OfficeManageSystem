@@ -10,6 +10,7 @@ public partial class ItemDetailPage : ContentPage
     private readonly ApplicationDbContext _context;
     private readonly Item _item;
     private readonly string _webRootPath = @"F:\code_repository\dotNetProjects\OfficeMgtAdmin\OfficeMgtAdmin.Web\wwwroot";
+    private readonly string _defaultImagePath = "default-item.jpg";
 
     public ItemDetailPage(ApplicationDbContext context, Item item)
     {
@@ -45,47 +46,44 @@ public partial class ItemDetailPage : ContentPage
     private void LoadItemDetails()
     {
         // 设置图片
-        if (!string.IsNullOrEmpty(_item.ItemPic))
+        try
         {
-            try
+            if (string.IsNullOrEmpty(_item.ItemPic))
             {
-                // 检查是否是Web路径
-                if (_item.ItemPic.StartsWith("/images/"))
+                // 如果图片路径为空，使用默认图片
+                ItemImage.Source = Path.Combine(_webRootPath,"images",_defaultImagePath);
+            }
+            else if (_item.ItemPic.StartsWith("/images/"))
+            {
+                // 处理Web路径
+                string fullPath = Path.Combine(_webRootPath, _item.ItemPic.TrimStart('/'));
+                
+                if (File.Exists(fullPath))
                 {
-                    // 是Web路径，构建完整的文件系统路径
-                    string fullPath = Path.Combine(_webRootPath, _item.ItemPic.TrimStart('/'));
-                    
-                    if (File.Exists(fullPath))
-                    {
-                        // 加载Web目录中的图片
-                        ItemImage.Source = ImageSource.FromFile(fullPath);
-                    }
-                    else
-                    {
-                        // Web目录中的图片不存在，使用默认图片
-                        ItemImage.Source = "default_item.jpg";
-                    }
-                }
-                else if (File.Exists(_item.ItemPic))
-                {
-                    // 直接加载本地图片
-                    ItemImage.Source = ImageSource.FromFile(_item.ItemPic);
+                    ItemImage.Source = ImageSource.FromFile(fullPath);
                 }
                 else
                 {
-                    // 文件不存在，使用默认图片
-                    ItemImage.Source = "default_item.jpg";
+                    ItemImage.Source = _defaultImagePath;
                 }
             }
-            catch (Exception)
+            else if (File.Exists(_item.ItemPic))
             {
-                // 加载失败时使用默认图片
-                ItemImage.Source = "default_item.jpg";
+                // 处理本地文件路径
+                ItemImage.Source = ImageSource.FromFile(_item.ItemPic);
+            }
+            else
+            {
+                // 文件不存在，使用默认图片
+                ItemImage.Source = _defaultImagePath;
             }
         }
-        else
+        catch (Exception ex)
         {
-            ItemImage.Source = "default_item.jpg";
+            // 记录异常信息
+            System.Diagnostics.Debug.WriteLine($"加载图片出错: {ex.Message}");
+            // 加载失败时使用默认图片
+            ItemImage.Source = _defaultImagePath;
         }
 
         // 设置文本标签

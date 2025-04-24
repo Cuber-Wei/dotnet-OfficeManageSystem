@@ -4,100 +4,102 @@
 }
 
 <div class="container">
-    <div class="row mb-3">
-        <div class="col">
-            <h2>库存查询</h2>
-        </div>
-        <div class="col-auto">
-            <a href="@Url.Action("Apply")" class="btn btn-primary">申请领用</a>
-            <a href="@Url.Action("MyApplications")" class="btn btn-info">我的申请</a>
-        </div>
-    </div>
-
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <select id="itemType" class="form-select">
-                <option value="">全部类别</option>
-                <option value="0">纸张</option>
-                <option value="1">文具</option>
-                <option value="2">刀具</option>
-                <option value="3">单据</option>
-                <option value="4">礼品</option>
-                <option value="5">其它</option>
-            </select>
-        </div>
-        <div class="col-auto">
-            <button id="queryBtn" class="btn btn-primary">查询</button>
+    <h1 class="display-6 mb-4">库存查询</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <select id="typeFilter" class="form-select">
+                    <option value="">所有类别</option>
+                    <option value="0">纸张</option>
+                    <option value="1">文具</option>
+                    <option value="2">刀具</option>
+                    <option value="3">单据</option>
+                    <option value="4">礼品</option>
+                    <option value="5">其它</option>
+                </select>
+                <button id="btnSearch" class="btn btn-primary">查询</button>
+            </div>
         </div>
     </div>
-
+    
     <div id="inventoryList">
-        <partial name="_InventoryList" model="Model" />
+        @await Html.PartialAsync("_InventoryList", Model)
     </div>
 </div>
 
 @section Scripts {
     <script>
-        function showImageModal(imagePath, itemName) {
-            document.getElementById('modalImage').src = imagePath;
-            document.getElementById('imageModalTitle').textContent = itemName;
-        }
-
+        // 申请领用相关脚本
         function showApplyModal(itemId, itemName, currentStock) {
-            $('#itemId').val(itemId);
-            $('#itemName').val(itemName);
-            $('#currentStock').val(currentStock);
-            $('#applyNum').val('').attr('max', currentStock);
-            $('#applyModal').modal('show');
+            document.getElementById('itemId').value = itemId;
+            document.getElementById('itemName').value = itemName;
+            document.getElementById('currentStock').value = currentStock;
+            document.getElementById('applyNum').value = '1';
+            
+            // 重置申请表单
+            document.getElementById('applyForm').reset();
+            document.getElementById('itemId').value = itemId;
+            document.getElementById('itemName').value = itemName;
+            document.getElementById('currentStock').value = currentStock;
         }
-
+        
         function submitApply() {
-            var itemId = $('#itemId').val();
-            var applyNum = $('#applyNum').val();
-
-            if (!applyNum || applyNum < 1) {
+            const itemId = document.getElementById('itemId').value;
+            const applyNum = document.getElementById('applyNum').value;
+            
+            if (!applyNum || applyNum <= 0) {
                 alert('请输入有效的申请数量');
                 return;
             }
-
+            
+            // 提交申请
             $.ajax({
-                url: '@Url.Action("SubmitApply")',
+                url: '/Home/Apply',
                 type: 'POST',
                 data: {
                     itemId: itemId,
                     applyNum: applyNum
                 },
-                success: function (response) {
-                    if (response.success) {
-                        alert('申请提交成功');
-                        $('#applyModal').modal('hide');
-                        // 刷新物品列表
-                        $('#queryBtn').click();
+                success: function(result) {
+                    if (result.success) {
+                        alert('申请成功');
+                        // 关闭模态框
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('applyModal'));
+                        modal.hide();
+                        // 刷新库存列表
+                        refreshInventoryList();
                     } else {
-                        alert(response.message || '申请提交失败');
+                        alert('申请失败: ' + result.message);
                     }
                 },
-                error: function () {
-                    alert('申请提交失败，请稍后重试');
+                error: function() {
+                    alert('申请失败，请稍后再试');
                 }
             });
         }
-
-        $(document).ready(function () {
-            $('#queryBtn').click(function () {
-                var itemType = $('#itemType').val();
-                
-                $.ajax({
-                    url: '@Url.Action("QueryByType")',
-                    type: 'POST',
-                    data: { itemType: itemType },
-                    success: function (response) {
-                        $('#inventoryList').html(response);
-                    },
-                    error: function () {
-                        alert('查询失败，请稍后重试');
-                    }
-                });
+        
+        function refreshInventoryList() {
+            const typeFilter = document.getElementById('typeFilter').value;
+            
+            $.ajax({
+                url: '/Home/GetInventoryList',
+                type: 'GET',
+                data: { type: typeFilter },
+                success: function(result) {
+                    document.getElementById('inventoryList').innerHTML = result;
+                },
+                error: function() {
+                    alert('刷新库存列表失败，请稍后再试');
+                }
+            });
+        }
+        
+        // 当页面加载完成时
+        document.addEventListener('DOMContentLoaded', function() {
+            // 绑定查询按钮点击事件
+            document.getElementById('btnSearch').addEventListener('click', function() {
+                refreshInventoryList();
             });
         });
     </script>
