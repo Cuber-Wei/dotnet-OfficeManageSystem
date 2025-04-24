@@ -1,6 +1,7 @@
 using OfficeMgtAdmin.Data;
 using OfficeMgtAdmin.Models;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 
 namespace OfficeMgtAdmin.Views;
 
@@ -8,6 +9,7 @@ public partial class ItemDetailPage : ContentPage
 {
     private readonly ApplicationDbContext _context;
     private readonly Item _item;
+    private readonly string _webRootPath = @"F:\code_repository\dotNetProjects\OfficeMgtAdmin\OfficeMgtAdmin.Web\wwwroot";
 
     public ItemDetailPage(ApplicationDbContext context, Item item)
     {
@@ -45,26 +47,60 @@ public partial class ItemDetailPage : ContentPage
         // 设置图片
         if (!string.IsNullOrEmpty(_item.ItemPic))
         {
-            ItemImage.Source = ImageSource.FromFile(_item.ItemPic);
+            try
+            {
+                // 检查是否是Web路径
+                if (_item.ItemPic.StartsWith("/images/"))
+                {
+                    // 是Web路径，构建完整的文件系统路径
+                    string fullPath = Path.Combine(_webRootPath, _item.ItemPic.TrimStart('/'));
+                    
+                    if (File.Exists(fullPath))
+                    {
+                        // 加载Web目录中的图片
+                        ItemImage.Source = ImageSource.FromFile(fullPath);
+                    }
+                    else
+                    {
+                        // Web目录中的图片不存在，使用默认图片
+                        ItemImage.Source = "default_item.jpg";
+                    }
+                }
+                else if (File.Exists(_item.ItemPic))
+                {
+                    // 直接加载本地图片
+                    ItemImage.Source = ImageSource.FromFile(_item.ItemPic);
+                }
+                else
+                {
+                    // 文件不存在，使用默认图片
+                    ItemImage.Source = "default_item.jpg";
+                }
+            }
+            catch (Exception)
+            {
+                // 加载失败时使用默认图片
+                ItemImage.Source = "default_item.jpg";
+            }
         }
         else
         {
-            ItemImage.Source = "default_item.png";
+            ItemImage.Source = "default_item.jpg";
         }
 
-        // 设置基本信息
+        // 设置文本标签
         CodeLabel.Text = _item.Code;
         NameLabel.Text = _item.ItemName;
-        TypeLabel.Text = GetItemTypeText(_item.ItemType);
-        OriginLabel.Text = _item.Origin;
-        SizeLabel.Text = _item.ItemSize;
-        VersionLabel.Text = _item.ItemVersion;
+        TypeLabel.Text = GetItemTypeName(_item.ItemType);
+        OriginLabel.Text = _item.Origin ?? "--";
+        SizeLabel.Text = _item.ItemSize ?? "--";
+        VersionLabel.Text = _item.ItemVersion ?? "--";
         StockLabel.Text = _item.ItemNum.ToString();
         CreateTimeLabel.Text = _item.CreateTime.ToString("yyyy-MM-dd HH:mm:ss");
         UpdateTimeLabel.Text = _item.UpdateTime.ToString("yyyy-MM-dd HH:mm:ss");
     }
 
-    private string GetItemTypeText(int type)
+    private string GetItemTypeName(int type)
     {
         return type switch
         {
@@ -76,12 +112,6 @@ public partial class ItemDetailPage : ContentPage
             5 => "其它",
             _ => "未知"
         };
-    }
-
-    private async void OnApplyClicked(object sender, EventArgs e)
-    {
-        // TODO: 实现申请领用功能
-        await DisplayAlert("提示", "申请领用功能开发中...", "确定");
     }
 
     private async void OnBackClicked(object sender, EventArgs e)

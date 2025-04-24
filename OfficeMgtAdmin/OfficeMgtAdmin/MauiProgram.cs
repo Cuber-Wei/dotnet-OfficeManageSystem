@@ -21,7 +21,6 @@ public static class MauiProgram
         builder.Services.AddDbContext<ApplicationDbContext>();
 
         // 注册页面
-        builder.Services.AddTransient<ItemEditPage>();
         builder.Services.AddTransient<ItemDetailPage>();
         builder.Services.AddTransient<ItemExportPage>();
 

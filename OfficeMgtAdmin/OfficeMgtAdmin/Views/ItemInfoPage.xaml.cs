@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using OfficeMgtAdmin.Data;
 using OfficeMgtAdmin.Models;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using System.Threading;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OfficeMgtAdmin.Views
 {
@@ -15,6 +15,8 @@ namespace OfficeMgtAdmin.Views
         private string? _selectedImagePath;
         private Item? _editingItem;
         private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        
+        private readonly string _webImagesPath = @"F:\code_repository\dotNetProjects\OfficeMgtAdmin\OfficeMgtAdmin.Web\wwwroot\images";
 
         public ItemInfoPage(ApplicationDbContext context)
         {
@@ -22,6 +24,12 @@ namespace OfficeMgtAdmin.Views
             _context = context;
             _items = new ObservableCollection<Item>();
             ItemsCollection.ItemsSource = _items;
+            
+            if (!Directory.Exists(_webImagesPath))
+            {
+                Directory.CreateDirectory(_webImagesPath);
+            }
+            
             LoadItems();
         }
 
@@ -44,7 +52,6 @@ namespace OfficeMgtAdmin.Views
 
         private void OnQueryClicked(object sender, EventArgs e)
         {
-            int? selectedType = TypePicker.SelectedIndex > 0 ? TypePicker.SelectedIndex - 1 : null;
             LoadItems();
         }
 
@@ -61,18 +68,57 @@ namespace OfficeMgtAdmin.Views
                 if (result != null)
                 {
                     _selectedImagePath = result.FullPath;
-                    // 显示图片路径
                     ImagePathLabel.Text = Path.GetFileName(result.FullPath);
-                    
-                    // 预览图片
                     PreviewImage.Source = ImageSource.FromFile(_selectedImagePath);
-                    
                     await DisplayAlert("提示", "图片选择成功", "确定");
                 }
             }
             catch (Exception ex)
             {
                 await DisplayAlert("错误", $"选择图片时出错: {ex.Message}", "确定");
+            }
+        }
+        
+        private async Task<string?> CopyImageToWebAsync(string sourcePath)
+        {
+            try
+            {
+                if (!File.Exists(sourcePath))
+                {
+                    await DisplayAlert("错误", "源图片文件不存在", "确定");
+                    return null;
+                }
+                
+                if (!Directory.Exists(_webImagesPath))
+                {
+                    Directory.CreateDirectory(_webImagesPath);
+                }
+                
+                string fileName = Path.GetFileNameWithoutExtension(sourcePath);
+                string extension = Path.GetExtension(sourcePath);
+                string uniqueFileName = $"{fileName}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
+                string destinationPath = Path.Combine(_webImagesPath, uniqueFileName);
+                
+                using (var sourceStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read))
+                using (var destinationStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write))
+                {
+                    await sourceStream.CopyToAsync(destinationStream);
+                }
+                
+                if (File.Exists(destinationPath))
+                {
+                    return $"/images/{uniqueFileName}";
+                }
+                else
+                {
+                    await DisplayAlert("错误", "图片复制到Web端失败", "确定");
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("错误", $"复制图片到Web端失败: {ex.Message}", "确定");
+                return null;
             }
         }
 
@@ -86,9 +132,14 @@ namespace OfficeMgtAdmin.Views
 
             try
             {
+                string? webImagePath = null;
+                if (!string.IsNullOrEmpty(_selectedImagePath))
+                {
+                    webImagePath = await CopyImageToWebAsync(_selectedImagePath);
+                }
+                
                 if (_editingItem == null)
                 {
-                    // 创建新物品
                     var item = new Item
                     {
                         Code = CodeEntry.Text.Trim(),
@@ -97,7 +148,7 @@ namespace OfficeMgtAdmin.Views
                         Origin = OriginEntry.Text?.Trim(),
                         ItemSize = SizeEntry.Text?.Trim(),
                         ItemVersion = VersionEntry.Text?.Trim(),
-                        ItemPic = _selectedImagePath,
+                        ItemPic = webImagePath,
                         ItemNum = 0,
                         CreateTime = DateTime.Now,
                         UpdateTime = DateTime.Now,
@@ -107,16 +158,15 @@ namespace OfficeMgtAdmin.Views
                 }
                 else
                 {
-                    // 更新现有物品
                     _editingItem.Code = CodeEntry.Text.Trim();
                     _editingItem.ItemName = NameEntry.Text.Trim();
                     _editingItem.ItemType = TypePicker.SelectedIndex;
                     _editingItem.Origin = OriginEntry.Text?.Trim();
                     _editingItem.ItemSize = SizeEntry.Text?.Trim();
                     _editingItem.ItemVersion = VersionEntry.Text?.Trim();
-                    if (!string.IsNullOrEmpty(_selectedImagePath))
+                    if (!string.IsNullOrEmpty(webImagePath))
                     {
-                        _editingItem.ItemPic = _selectedImagePath;
+                        _editingItem.ItemPic = webImagePath;
                     }
                     _editingItem.UpdateTime = DateTime.Now;
                 }
@@ -187,7 +237,6 @@ namespace OfficeMgtAdmin.Views
                 await _semaphore.WaitAsync();
                 try
                 {
-                    // 获取物品的新实例，使用 AsNoTracking 避免跟踪冲突
                     var freshItem = await _context.Items
                         .AsNoTracking()
                         .FirstOrDefaultAsync(i => i.Id == itemId);
@@ -229,7 +278,6 @@ namespace OfficeMgtAdmin.Views
                 VersionEntry.Text = item.ItemVersion;
                 _selectedImagePath = item.ItemPic;
                 
-                // 显示图片路径
                 if (!string.IsNullOrEmpty(item.ItemPic))
                 {
                     ImagePathLabel.Text = Path.GetFileName(item.ItemPic);

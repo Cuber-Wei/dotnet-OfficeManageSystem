@@ -6,3 +6,6 @@
 *.ntvs*
 bin
 obj
+*.jpg
+*.png
+*.gif
