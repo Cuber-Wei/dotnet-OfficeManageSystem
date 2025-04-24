@@ -4,7 +4,7 @@
              x:Class="OfficeMgtAdmin.Views.AdminMainPage"
              Title="系统主界面">
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="20">
+        <VerticalStackLayout Padding="20, 150" Spacing="50">
             <Button Text="用户维护" WidthRequest="300" Clicked="OnUserMaintenanceClicked" />
             <Button Text="物品信息" WidthRequest="300" Clicked="OnItemInfoClicked" />
             <Button Text="物品入库" WidthRequest="300" Clicked="OnImportClicked" />

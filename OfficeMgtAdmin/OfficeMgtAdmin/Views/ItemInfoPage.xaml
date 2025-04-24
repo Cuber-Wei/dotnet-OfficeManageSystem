@@ -4,14 +4,14 @@
              x:Class="OfficeMgtAdmin.Views.ItemInfoPage"
              Title="物品信息">
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
+        <VerticalStackLayout Padding="20" Spacing="15" WidthRequest="1000">
             <Border Stroke="{StaticResource Primary}"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 5"
                     Padding="15"
                     Margin="0,0,0,20">
                 <Grid ColumnDefinitions="Auto,*" 
-                      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" 
+                      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" 
                       ColumnSpacing="15" 
                       RowSpacing="10">
                     <Label Text="物品编码:" 
@@ -80,19 +80,43 @@
                            Grid.Row="6" 
                            Grid.Column="0" 
                            VerticalOptions="Center"/>
-                    <Button x:Name="SelectImageButton" 
-                            Grid.Row="6" 
-                            Grid.Column="1" 
-                            Text="选择图片" 
-                            Clicked="OnSelectImageClicked"/>
+                    <HorizontalStackLayout Grid.Row="6" Grid.Column="1" Spacing="10">
+                        <Button x:Name="SelectImageButton" 
+                                Text="选择图片" 
+                                Clicked="OnSelectImageClicked"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="White"/>
+                        <Label x:Name="ImagePathLabel" VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
+                    <Label Text="图片预览:" 
+                           Grid.Row="7" 
+                           Grid.Column="0" 
+                           VerticalOptions="Start"/>
+                    <Border Grid.Row="7" 
+                           Grid.Column="1"
+                           Stroke="{StaticResource Gray300}"
+                           StrokeThickness="1"
+                           StrokeShape="RoundRectangle 5"
+                           Padding="10"
+                           HorizontalOptions="Start"
+                           WidthRequest="400">
+                        <Image x:Name="PreviewImage"
+                               HeightRequest="300"
+                               WidthRequest="300"
+                               Aspect="AspectFit"/>
+                    </Border>
 
                     <Button x:Name="SaveButton" 
-                            Grid.Row="7" 
+                            Grid.Row="8" 
                             Grid.Column="0" 
                             Grid.ColumnSpan="2" 
                             WidthRequest="200"
+                            HorizontalOptions="Center"
                             Text="保存" 
-                            Clicked="OnSaveClicked"/>
+                            Clicked="OnSaveClicked"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="White"/>
                 </Grid>
             </Border>
 

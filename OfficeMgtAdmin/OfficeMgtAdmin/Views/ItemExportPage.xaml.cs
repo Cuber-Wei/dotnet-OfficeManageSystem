@@ -4,6 +4,7 @@ using OfficeMgtAdmin.Models;
 using OfficeMgtAdmin.ViewModels;
 using System.Collections.ObjectModel;
 using System.Text.Json;
+using System.Windows.Input;
 
 namespace OfficeMgtAdmin.Views
 {
@@ -14,6 +15,11 @@ namespace OfficeMgtAdmin.Views
         private ObservableCollection<ApplyRecordViewModel> _applyRecords;
         private List<User> _users;
         private List<ApplyRecordViewModel> _allRecords;
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+
+        public ICommand DetailCommand { get; }
+        public ICommand ConfirmCommand { get; }
+        public ICommand RejectCommand { get; }
 
         public ItemExportPage(ApplicationDbContext context)
         {
@@ -25,6 +31,15 @@ namespace OfficeMgtAdmin.Views
             _users = new List<User>();
             ApplyRecordsCollection.ItemsSource = _applyRecords;
             StatusPicker.SelectedIndex = 0; // 默认选择"全部"
+
+            // 初始化命令
+            DetailCommand = new Command<Item>(async (item) => await OnDetailClicked(item));
+            ConfirmCommand = new Command<Item>(async (item) => await OnConfirmClicked(item));
+            RejectCommand = new Command<Item>(async (item) => await OnRejectClicked(item));
+
+            // 设置绑定上下文
+            BindingContext = this;
+
             LoadUsers();
             LoadApplyRecords();
         }
@@ -55,20 +70,29 @@ namespace OfficeMgtAdmin.Views
         {
             try
             {
-                var records = await _context.ApplyRecords
-                    .Include(r => r.Item)
-                    .Where(r => !r.IsDelete)
-                    .OrderByDescending(r => r.ApplyDate)
-                    .ToListAsync();
-
-                _allRecords.Clear();
-                foreach (var record in records)
+                await _semaphore.WaitAsync();
+                try
                 {
-                    var user = FindUser(record.UserId);
-                    _allRecords.Add(new ApplyRecordViewModel(record, user));
-                }
+                    var records = await _context.ApplyRecords
+                        .AsNoTracking()  // 使用 AsNoTracking 避免实体跟踪冲突
+                        .Include(r => r.Item)
+                        .Where(r => !r.IsDelete)
+                        .OrderByDescending(r => r.ApplyDate)
+                        .ToListAsync();
 
-                FilterRecords();
+                    _allRecords.Clear();
+                    foreach (var record in records)
+                    {
+                        var user = FindUser(record.UserId);
+                        _allRecords.Add(new ApplyRecordViewModel(record, user));
+                    }
+
+                    FilterRecords();
+                }
+                finally
+                {
+                    _semaphore.Release();
+                }
             }
             catch (Exception ex)
             {
@@ -100,49 +124,44 @@ namespace OfficeMgtAdmin.Views
             FilterRecords();
         }
 
-        private async void OnConfirmClicked(object sender, EventArgs e)
+        private async Task OnConfirmClicked(Item item)
         {
+            if (item == null)
+            {
+                await DisplayAlert("错误", "找不到物品信息", "确定");
+                return;
+            }
+
+            if (item.ItemNum < 1)
+            {
+                await DisplayAlert("提示", "库存不足", "确定");
+                return;
+            }
+
             try
             {
-                var button = (Button)sender;
-                var recordId = (long)button.CommandParameter;
-
-                var record = await _context.ApplyRecords
-                    .Include(r => r.Item)
-                    .FirstOrDefaultAsync(r => r.Id == recordId);
-
-                if (record?.Item == null)
+                await _semaphore.WaitAsync();
+                try
                 {
-                    await DisplayAlert("错误", "找不到申请记录或物品信息", "确定");
-                    return;
+                    // 从数据库获取最新数据
+                    var freshItem = await _context.Items.FindAsync(item.Id);
+                    if (freshItem == null)
+                    {
+                        await DisplayAlert("错误", "找不到物品信息", "确定");
+                        return;
+                    }
+
+                    freshItem.ItemNum -= 1;
+                    await _context.SaveChangesAsync();
+                    await DisplayAlert("提示", "已确认", "确定");
+                }
+                finally
+                {
+                    _semaphore.Release();
                 }
 
-                if (record.ApplyStatus != 0)
-                {
-                    await DisplayAlert("提示", "该申请已处理", "确定");
-                    return;
-                }
-
-                if (record.Item.ItemNum < record.ApplyNum)
-                {
-                    await DisplayAlert("提示", "库存不足", "确定");
-                    return;
-                }
-
-                // 检查用户是否存在
-                var user = FindUser(record.UserId);
-                if (user == null)
-                {
-                    await DisplayAlert("错误", "找不到申请用户信息", "确定");
-                    return;
-                }
-
-                record.ApplyStatus = 1; // 确认
-                record.Item.ItemNum -= record.ApplyNum;
-
-                await _context.SaveChangesAsync();
-                await DisplayAlert("提示", "已确认", "确定");
-                LoadApplyRecords(); // 重新加载申请记录
+                // 刷新列表（在释放信号量后进行）
+                LoadApplyRecords();
             }
             catch (Exception ex)
             {
@@ -150,42 +169,38 @@ namespace OfficeMgtAdmin.Views
             }
         }
 
-        private async void OnRejectClicked(object sender, EventArgs e)
+        private async Task OnRejectClicked(Item item)
         {
+            if (item == null)
+            {
+                await DisplayAlert("错误", "找不到物品信息", "确定");
+                return;
+            }
+
             try
             {
-                var button = (Button)sender;
-                var recordId = (long)button.CommandParameter;
-
-                var record = await _context.ApplyRecords
-                    .Include(r => r.Item)
-                    .FirstOrDefaultAsync(r => r.Id == recordId);
-
-                if (record == null)
+                await _semaphore.WaitAsync();
+                try
                 {
-                    await DisplayAlert("错误", "找不到申请记录", "确定");
-                    return;
+                    // 从数据库获取最新数据
+                    var freshItem = await _context.Items.FindAsync(item.Id);
+                    if (freshItem == null)
+                    {
+                        await DisplayAlert("错误", "找不到物品信息", "确定");
+                        return;
+                    }
+
+                    freshItem.ItemNum -= 1;
+                    await _context.SaveChangesAsync();
+                    await DisplayAlert("提示", "已驳回", "确定");
+                }
+                finally
+                {
+                    _semaphore.Release();
                 }
 
-                if (record.ApplyStatus != 0)
-                {
-                    await DisplayAlert("提示", "该申请已处理", "确定");
-                    return;
-                }
-
-                // 检查用户是否存在
-                var user = FindUser(record.UserId);
-                if (user == null)
-                {
-                    await DisplayAlert("错误", "找不到申请用户信息", "确定");
-                    return;
-                }
-
-                record.ApplyStatus = 2; // 驳回
-
-                await _context.SaveChangesAsync();
-                await DisplayAlert("提示", "已驳回", "确定");
-                LoadApplyRecords(); // 重新加载申请记录
+                // 刷新列表（在释放信号量后进行）
+                LoadApplyRecords();
             }
             catch (Exception ex)
             {
@@ -237,6 +252,50 @@ namespace OfficeMgtAdmin.Views
                 2 => "已驳回",
                 _ => "未知"
             };
+        }
+
+        private async Task OnDetailClicked(Item item)
+        {
+            if (item == null)
+            {
+                await DisplayAlert("错误", "无法获取物品信息", "确定");
+                return;
+            }
+
+            try
+            {
+                await _semaphore.WaitAsync();
+                try
+                {
+                    // 获取物品的新实例，使用 AsNoTracking 避免跟踪冲突
+                    var freshItem = await _context.Items
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(i => i.Id == item.Id);
+                    
+                    if (freshItem == null)
+                    {
+                        await DisplayAlert("错误", "找不到物品信息", "确定");
+                        return;
+                    }
+
+                    var detailPage = new ItemDetailPage(_context, freshItem);
+                    await Navigation.PushAsync(detailPage);
+                }
+                finally
+                {
+                    _semaphore.Release();
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("错误", $"导航到详情页面时发生错误：{ex.Message}", "确定");
+            }
+        }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            LoadApplyRecords();
         }
     }
 } 

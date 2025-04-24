@@ -10,7 +10,7 @@
     </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
+        <VerticalStackLayout Padding="20" Spacing="15" WidthRequest="1000">
             <Grid ColumnDefinitions="Auto,200*" ColumnSpacing="10">
                 <Label Text="状态筛选："
                        VerticalOptions="Center"/>
@@ -66,22 +66,22 @@
 
                                         <Button Text="详情" 
                                                 Grid.Column="5"
-                                                Clicked="OnViewDetailsClicked"
-                                                CommandParameter="{Binding Id}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=DetailCommand}"
+                                                CommandParameter="{Binding Item}"
                                                 Margin="5,0"/>
 
                                         <Button Text="通过" 
                                                 Grid.Column="6"
                                                 IsVisible="{Binding ApplyStatus, Converter={StaticResource CanConfirmConverter}}"
-                                                Clicked="OnConfirmClicked"
-                                                CommandParameter="{Binding Id}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=ConfirmCommand}"
+                                                CommandParameter="{Binding Item}"
                                                 Margin="5,0"/>
 
                                         <Button Text="驳回" 
                                                 Grid.Column="7"
                                                 IsVisible="{Binding ApplyStatus, Converter={StaticResource CanConfirmConverter}}"
-                                                Clicked="OnRejectClicked"
-                                                CommandParameter="{Binding Id}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=RejectCommand}"
+                                                CommandParameter="{Binding Item}"
                                                 BackgroundColor="{StaticResource Error}"
                                                 Margin="5,0"/>
                                     </Grid>

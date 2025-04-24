@@ -4,7 +4,7 @@
              x:Class="OfficeMgtAdmin.Views.ItemRecordPage"
              Title="物品记录">
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
+        <VerticalStackLayout Padding="20" Spacing="15" WidthRequest="800">
             <Border Stroke="{StaticResource Primary}"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 5"

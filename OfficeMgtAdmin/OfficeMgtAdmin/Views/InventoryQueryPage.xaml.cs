@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OfficeMgtAdmin.Data;
 using OfficeMgtAdmin.Models;
 using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace OfficeMgtAdmin.Views
 {
@@ -9,6 +10,7 @@ namespace OfficeMgtAdmin.Views
     {
         private readonly ApplicationDbContext _context;
         private ObservableCollection<Item> _items;
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         public InventoryQueryPage(ApplicationDbContext context)
         {
@@ -52,21 +54,34 @@ namespace OfficeMgtAdmin.Views
         {
             var button = (Button)sender;
             var itemId = (long)button.CommandParameter;
-            var item = _items.FirstOrDefault(i => i.Id == itemId);
-
-            if (item != null)
+            
+            try
             {
-                var message = $"物品编码: {item.Code}\n" +
-                             $"物品名称: {item.ItemName}\n" +
-                             $"物品类别: {GetItemTypeName(item.ItemType)}\n" +
-                             $"产地: {item.Origin ?? "未设置"}\n" +
-                             $"规格: {item.ItemSize ?? "未设置"}\n" +
-                             $"型号: {item.ItemVersion ?? "未设置"}\n" +
-                             $"当前库存: {item.ItemNum}\n" +
-                             $"创建时间: {item.CreateTime:yyyy-MM-dd HH:mm:ss}\n" +
-                             $"更新时间: {item.UpdateTime:yyyy-MM-dd HH:mm:ss}";
+                await _semaphore.WaitAsync();
+                try
+                {
+                    // 获取物品的新实例，使用 AsNoTracking 避免跟踪冲突
+                    var freshItem = await _context.Items
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(i => i.Id == itemId);
+                    
+                    if (freshItem == null)
+                    {
+                        await DisplayAlert("错误", "找不到物品信息", "确定");
+                        return;
+                    }
 
-                await DisplayAlert($"物品详情 - {item.ItemName}", message, "确定");
+                    var detailPage = new ItemDetailPage(_context, freshItem);
+                    await Navigation.PushAsync(detailPage);
+                }
+                finally
+                {
+                    _semaphore.Release();
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("错误", $"导航到详情页面时发生错误：{ex.Message}", "确定");
             }
         }
 

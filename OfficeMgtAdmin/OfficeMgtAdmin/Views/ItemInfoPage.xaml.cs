@@ -3,6 +3,8 @@ using OfficeMgtAdmin.Data;
 using OfficeMgtAdmin.Models;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using System.Threading;
+using System.IO;
 
 namespace OfficeMgtAdmin.Views
 {
@@ -12,6 +14,7 @@ namespace OfficeMgtAdmin.Views
         private ObservableCollection<Item> _items;
         private string? _selectedImagePath;
         private Item? _editingItem;
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         public ItemInfoPage(ApplicationDbContext context)
         {
@@ -58,6 +61,12 @@ namespace OfficeMgtAdmin.Views
                 if (result != null)
                 {
                     _selectedImagePath = result.FullPath;
+                    // 显示图片路径
+                    ImagePathLabel.Text = Path.GetFileName(result.FullPath);
+                    
+                    // 预览图片
+                    PreviewImage.Source = ImageSource.FromFile(_selectedImagePath);
+                    
                     await DisplayAlert("提示", "图片选择成功", "确定");
                 }
             }
@@ -133,6 +142,8 @@ namespace OfficeMgtAdmin.Views
             SizeEntry.Text = string.Empty;
             VersionEntry.Text = string.Empty;
             _selectedImagePath = null;
+            ImagePathLabel.Text = string.Empty;
+            PreviewImage.Source = null;
         }
 
         private async void OnDeleteClicked(object sender, EventArgs e)
@@ -170,20 +181,34 @@ namespace OfficeMgtAdmin.Views
         {
             var button = (Button)sender;
             var itemId = (long)button.CommandParameter;
-            var item = _items.FirstOrDefault(i => i.Id == itemId);
-
-            if (item != null)
+            
+            try
             {
-                var message = $"物品编码: {item.Code}\n" +
-                             $"物品名称: {item.ItemName}\n" +
-                             $"物品类别: {item.ItemType}\n" +
-                             $"产地: {item.Origin ?? "未设置"}\n" +
-                             $"规格: {item.ItemSize ?? "未设置"}\n" +
-                             $"型号: {item.ItemVersion ?? "未设置"}\n" +
-                             $"创建时间: {item.CreateTime:yyyy-MM-dd HH:mm:ss}\n" +
-                             $"更新时间: {item.UpdateTime:yyyy-MM-dd HH:mm:ss}";
+                await _semaphore.WaitAsync();
+                try
+                {
+                    // 获取物品的新实例，使用 AsNoTracking 避免跟踪冲突
+                    var freshItem = await _context.Items
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(i => i.Id == itemId);
+                    
+                    if (freshItem == null)
+                    {
+                        await DisplayAlert("错误", "找不到物品信息", "确定");
+                        return;
+                    }
 
-                await DisplayAlert($"物品详情 - {item.ItemName}", message, "确定");
+                    var detailPage = new ItemDetailPage(_context, freshItem);
+                    await Navigation.PushAsync(detailPage);
+                }
+                finally
+                {
+                    _semaphore.Release();
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("错误", $"导航到详情页面时发生错误：{ex.Message}", "确定");
             }
         }
 
@@ -202,6 +227,19 @@ namespace OfficeMgtAdmin.Views
                 OriginEntry.Text = item.Origin;
                 SizeEntry.Text = item.ItemSize;
                 VersionEntry.Text = item.ItemVersion;
+                _selectedImagePath = item.ItemPic;
+                
+                // 显示图片路径
+                if (!string.IsNullOrEmpty(item.ItemPic))
+                {
+                    ImagePathLabel.Text = Path.GetFileName(item.ItemPic);
+                    PreviewImage.Source = ImageSource.FromFile(item.ItemPic);
+                }
+                else
+                {
+                    ImagePathLabel.Text = string.Empty;
+                    PreviewImage.Source = null;
+                }
             }
         }
     }

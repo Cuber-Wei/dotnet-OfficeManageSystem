@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="OfficeMgtAdmin.Views.ItemDetailPage"
+             Title="物品详情">
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="20">
+            <!-- 物品图片 -->
+            <Border Stroke="{StaticResource Primary}"
+                   StrokeThickness="1"
+                   StrokeShape="RoundRectangle 5"
+                   Padding="10"
+                   WidthRequest="500"
+                   HorizontalOptions="Center">
+                <Image x:Name="ItemImage"
+                       HeightRequest="400"
+                       WidthRequest="400"
+                       Aspect="AspectFit"/>
+            </Border>
+
+            <!-- 基本信息 -->
+            <Border Stroke="{StaticResource Primary}"
+                   StrokeThickness="1"
+                   StrokeShape="RoundRectangle 5"
+                   WidthRequest="500"
+                   Padding="15">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="基本信息" 
+                           FontSize="Large" 
+                           FontAttributes="Bold"
+                           Margin="0,0,0,10"/>
+                    
+                    <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                        <Label Text="物品编码：" Grid.Row="0" Grid.Column="0"/>
+                        <Label x:Name="CodeLabel" Grid.Row="0" Grid.Column="1"/>
+                        
+                        <Label Text="物品名称：" Grid.Row="0" Grid.Column="2"/>
+                        <Label x:Name="NameLabel" Grid.Row="0" Grid.Column="3" FontAttributes="Bold"/>
+                        
+                        <Label Text="物品类别：" Grid.Row="1" Grid.Column="0"/>
+                        <Label x:Name="TypeLabel" Grid.Row="1" Grid.Column="1"/>
+                        
+                        <Label Text="物品产地：" Grid.Row="1" Grid.Column="2"/>
+                        <Label x:Name="OriginLabel" Grid.Row="1" Grid.Column="3"/>
+                        
+                        <Label Text="物品规格：" Grid.Row="2" Grid.Column="0"/>
+                        <Label x:Name="SizeLabel" Grid.Row="2" Grid.Column="1"/>
+                        
+                        <Label Text="物品型号：" Grid.Row="2" Grid.Column="2"/>
+                        <Label x:Name="VersionLabel" Grid.Row="2" Grid.Column="3"/>
+                        
+                        <Label Text="当前库存：" Grid.Row="3" Grid.Column="0"/>
+                        <Label x:Name="StockLabel" Grid.Row="3" Grid.Column="1" TextColor="{StaticResource Primary}" FontAttributes="Bold"/>
+                        
+                        <Label Text="创建时间：" Grid.Row="4" Grid.Column="0"/>
+                        <Label x:Name="CreateTimeLabel" Grid.Row="4" Grid.Column="1" TextColor="{StaticResource Gray500}"/>
+                        
+                        <Label Text="更新时间：" Grid.Row="4" Grid.Column="2"/>
+                        <Label x:Name="UpdateTimeLabel" Grid.Row="4" Grid.Column="3" TextColor="{StaticResource Gray500}"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- 操作按钮 -->
+            <Button Text="返回" 
+                    Clicked="OnBackClicked"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"
+                    WidthRequest="120"
+                    HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage> 

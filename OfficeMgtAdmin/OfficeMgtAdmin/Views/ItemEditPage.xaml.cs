@@ -88,8 +88,6 @@ namespace OfficeMgtAdmin.Views
             _item.ItemSize = SizeEntry.Text?.Trim();
             _item.ItemVersion = VersionEntry.Text?.Trim();
             _item.ItemPic = _selectedImagePath;
-            _item.UpdateTime = DateTime.Now;
-
             try
             {
                 await _context.SaveChangesAsync();

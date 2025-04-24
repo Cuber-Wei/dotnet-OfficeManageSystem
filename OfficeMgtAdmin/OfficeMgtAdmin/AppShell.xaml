@@ -8,7 +8,7 @@
     Title="OfficeMgtAdmin">
 
     <ShellContent
-        Title="Home"
+        Title="登录"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 

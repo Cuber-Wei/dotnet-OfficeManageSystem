@@ -4,7 +4,7 @@
              x:Class="OfficeMgtAdmin.Views.InventoryQueryPage"
              Title="库存查询">
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
+        <VerticalStackLayout Padding="20" Spacing="15" WidthRequest="1000">
             <Border Stroke="{StaticResource Primary}"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 5"

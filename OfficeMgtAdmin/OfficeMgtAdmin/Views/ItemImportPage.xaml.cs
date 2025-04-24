@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OfficeMgtAdmin.Data;
 using OfficeMgtAdmin.Models;
 using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace OfficeMgtAdmin.Views
 {
@@ -10,6 +11,7 @@ namespace OfficeMgtAdmin.Views
         private readonly ApplicationDbContext _context;
         private readonly ObservableCollection<Item> _items;
         private Item? _selectedItem;
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         public ItemImportPage(ApplicationDbContext context)
         {
@@ -59,35 +61,31 @@ namespace OfficeMgtAdmin.Views
             
             try
             {
-                var item = await _context.Items.FindAsync(itemId);
-                if (item == null)
+                await _semaphore.WaitAsync();
+                try
                 {
-                    await DisplayAlert("错误", "找不到物品信息", "确定");
-                    return;
+                    // 获取物品的新实例，使用 AsNoTracking 避免跟踪冲突
+                    var freshItem = await _context.Items
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(i => i.Id == itemId);
+                    
+                    if (freshItem == null)
+                    {
+                        await DisplayAlert("错误", "找不到物品信息", "确定");
+                        return;
+                    }
+
+                    var detailPage = new ItemDetailPage(_context, freshItem);
+                    await Navigation.PushAsync(detailPage);
                 }
-
-                var importRecords = await _context.ImportRecords
-                    .Where(r => r.ItemId == itemId && !r.IsDelete)
-                    .OrderByDescending(r => r.ImportDate)
-                    .Take(5)
-                    .ToListAsync();
-
-                var message = $"物品名称: {item.ItemName}\n" +
-                            $"物品编码: {item.Code}\n" +
-                            $"物品类型: {GetItemTypeName(item.ItemType)}\n" +
-                            $"当前库存: {item.ItemNum}\n" +
-                            $"产地: {item.Origin ?? "未设置"}\n" +
-                            $"规格: {item.ItemSize ?? "未设置"}\n" +
-                            $"型号: {item.ItemVersion ?? "未设置"}\n\n" +
-                            "最近5条入库记录:\n" +
-                            string.Join("\n", importRecords.Select(r =>
-                                $"- {r.ImportDate:yyyy-MM-dd} 数量:{r.ImportNum} 单价:{r.SinglePrice:C}"));
-
-                await DisplayAlert($"物品详情 - {item.ItemName}", message, "确定");
+                finally
+                {
+                    _semaphore.Release();
+                }
             }
             catch (Exception ex)
             {
-                await DisplayAlert("错误", $"获取物品详情失败: {ex.Message}", "确定");
+                await DisplayAlert("错误", $"导航到详情页面时发生错误：{ex.Message}", "确定");
             }
         }
 

@@ -4,9 +4,9 @@
              x:Class="OfficeMgtAdmin.Views.UserMaintenancePage"
              Title="用户维护">
     <ScrollView>
-        <VerticalStackLayout Spacing="10" Padding="20">
+        <VerticalStackLayout Spacing="10" Padding="20" WidthRequest="1000">
             <!-- 登录界面 -->
-            <Grid x:Name="LoginGrid" RowSpacing="10" ColumnSpacing="10">
+            <Grid x:Name="LoginGrid" RowSpacing="10" ColumnSpacing="10" WidthRequest="500" Padding="0,200">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -18,7 +18,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Label Text="管理员登录" Grid.Row="0" Grid.ColumnSpan="2" 
+                <Label Text="管理员二次登录验证" Grid.Row="0" Grid.ColumnSpan="2" 
                        HorizontalOptions="Center" FontSize="24" Margin="0,0,0,20"/>
 
                 <Label Text="用户ID:" Grid.Row="1" Grid.Column="0" 
@@ -182,9 +182,6 @@
                     </Border>
                 </Grid>
             </Grid>
-            <!-- Add logout button at the bottom -->
-            <Button Text="退出登录" Clicked="OnLogoutClicked" 
-                    HorizontalOptions="End" Margin="0,20,0,0"/>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage> 

@@ -4,11 +4,11 @@
              x:Class="OfficeMgtAdmin.MainPage">
 
     <ScrollView>
-        <VerticalStackLayout Padding="30,0" Spacing="20">
-            <Label Text="Admin Login" FontAttributes="Bold" FontSize="Large" HorizontalOptions="Center" />
-            <Entry x:Name="UserIdEntry" Placeholder="Username" />
-            <Entry x:Name="PasswordEntry" Placeholder="Password" IsPassword="True" />
-            <Button x:Name="LoginBtn" Text="Login" Clicked="OnLoginClicked" HorizontalOptions="Fill" />
+        <VerticalStackLayout Padding="30,200" Spacing="20" WidthRequest="500">
+            <Label Text="管理员登录" FontAttributes="Bold" FontSize="Large" HorizontalOptions="Center" />
+            <Entry x:Name="UserIdEntry" Placeholder="用户名" />
+            <Entry x:Name="PasswordEntry" Placeholder="密码" IsPassword="True" />
+            <Button x:Name="LoginBtn" Text="登录" Clicked="OnLoginClicked" HorizontalOptions="Fill" />
         </VerticalStackLayout>
     </ScrollView>
 
