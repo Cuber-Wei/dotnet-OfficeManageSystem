@@ -55,11 +55,28 @@ public class HomeController : Controller
     }
 
     [Authorize]
-    public IActionResult Inventory()
+    public async Task<IActionResult> Inventory()
     {
-        var items = _context.Items
+        var items = await _context.Items
             .Where(i => !i.IsDelete)
-            .ToList();
+            .OrderBy(i => i.Code)
+            .ToListAsync();
+
+        // 获取每个物品的最新入库价格
+        var latestImports = await _context.ImportRecords
+            .Where(i => !i.IsDelete)
+            .GroupBy(i => i.ItemId)
+            .Select(g => new
+            {
+                ItemId = g.Key,
+                SinglePrice = g.OrderByDescending(i => i.ImportDate)
+                             .Select(i => i.SinglePrice)
+                             .FirstOrDefault()
+            })
+            .Where(x => x.SinglePrice > 0)
+            .ToDictionaryAsync(x => x.ItemId, x => x.SinglePrice);
+
+        ViewBag.LatestImports = latestImports;
 
         return View(items);
     }

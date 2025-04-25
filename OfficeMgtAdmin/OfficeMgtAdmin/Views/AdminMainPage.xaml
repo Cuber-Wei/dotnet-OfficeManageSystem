@@ -8,7 +8,7 @@
             <Button Text="用户维护" WidthRequest="300" Clicked="OnUserMaintenanceClicked" />
             <Button Text="物品信息" WidthRequest="300" Clicked="OnItemInfoClicked" />
             <Button Text="物品入库" WidthRequest="300" Clicked="OnImportClicked" />
-            <Button Text="物品出库" WidthRequest="300" Clicked="OnExportClicked" />
+            <Button Text="申请审核" WidthRequest="300" Clicked="OnExportClicked" />
             <Button Text="库存查询" WidthRequest="300" Clicked="OnInventoryQueryClicked" />
         </VerticalStackLayout>
     </ScrollView>

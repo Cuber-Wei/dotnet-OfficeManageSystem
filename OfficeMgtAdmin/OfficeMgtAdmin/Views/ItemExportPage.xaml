@@ -3,94 +3,221 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:converters="clr-namespace:OfficeMgtAdmin.Converters"
              x:Class="OfficeMgtAdmin.Views.ItemExportPage"
-             Title="物品出库">
+             Title="申请审核">
     <ContentPage.Resources>
         <converters:ApplyStatusConverter x:Key="ApplyStatusConverter" />
         <converters:CanConfirmConverter x:Key="CanConfirmConverter" />
     </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15" WidthRequest="1000">
-            <Grid ColumnDefinitions="Auto,200*" ColumnSpacing="10">
-                <Label Text="状态筛选："
-                       VerticalOptions="Center"/>
-                <Picker x:Name="StatusPicker"
-                        Grid.Column="1"
-                        SelectedIndexChanged="OnStatusFilterChanged">
-                    <Picker.Items>
-                        <x:String>全部</x:String>
-                        <x:String>待审批</x:String>
-                        <x:String>已通过</x:String>
-                        <x:String>已驳回</x:String>
-                    </Picker.Items>
-                </Picker>
-            </Grid>
+        <Grid RowDefinitions="Auto,Auto,*" 
+              HorizontalOptions="Center" 
+              WidthRequest="1000">
+            <VerticalStackLayout Grid.Row="0" 
+                                Padding="20" 
+                                Spacing="15">
+                <Label Text="申请审核" 
+                       FontSize="24" 
+                       FontAttributes="Bold" 
+                       HorizontalOptions="Center" 
+                       Margin="0,0,0,10"/>
+                
+                <Frame BorderColor="{StaticResource Primary}"
+                       CornerRadius="10"
+                       Padding="15"
+                       Margin="0,0,0,10">
+                    <Picker x:Name="StatusPicker" 
+                            Title="选择状态" 
+                            SelectedIndexChanged="OnStatusFilterChanged"
+                            HorizontalOptions="Center"
+                            WidthRequest="800">
+                        <Picker.Items>
+                            <x:String>全部</x:String>
+                            <x:String>待审核</x:String>
+                            <x:String>已通过</x:String>
+                            <x:String>已驳回</x:String>
+                        </Picker.Items>
+                    </Picker>
+                </Frame>
+            </VerticalStackLayout>
 
-            <Border Stroke="{StaticResource Primary}"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 5"
-                    Padding="15">
-                <Grid RowDefinitions="Auto,*">
-                    <Label Text="申请记录" 
-                           FontSize="Large" 
-                           Grid.Row="0" 
-                           Margin="0,0,0,10"/>
+            <Frame Grid.Row="1"
+                   Margin="20,0,20,20"
+                   Padding="15"
+                   BorderColor="{StaticResource Primary}"
+                   CornerRadius="10"
+                   IsVisible="{Binding HasNoRecords}">
+                <Label Text="暂无相关记录"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       TextColor="{StaticResource Primary}"/>
+            </Frame>
 
-                    <CollectionView x:Name="ApplyRecordsCollection" 
-                                   Grid.Row="1">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Border Margin="0,5"
-                                        Stroke="{StaticResource Gray300}"
-                                        StrokeThickness="1"
-                                        StrokeShape="RoundRectangle 5"
-                                        Padding="10">
-                                    <Grid ColumnDefinitions="120,150,80,100,100,Auto,Auto,Auto" 
-                                          ColumnSpacing="10">
-                                        <Label Text="{Binding Item.Code}" 
-                                               Grid.Column="0" 
-                                               VerticalOptions="Center"/>
+            <CollectionView x:Name="ApplyRecordsCollection" 
+                           Grid.Row="2" 
+                           Margin="20">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical"
+                                   Span="3"
+                                   HorizontalItemSpacing="20"
+                                   VerticalItemSpacing="20"/>
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Margin="0" 
+                               Padding="15" 
+                               BorderColor="{StaticResource Primary}" 
+                               CornerRadius="10"
+                               HeightRequest="300">
+                            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" 
+                                  ColumnDefinitions="*,Auto"
+                                  RowSpacing="5">
+                                <Grid Grid.Row="0" 
+                                      Grid.Column="0" 
+                                      Grid.ColumnSpan="2"
+                                      ColumnDefinitions="*,Auto"
+                                      ColumnSpacing="20">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="5">
+                                        <Label Text="物品名称" 
+                                               FontSize="12" 
+                                               TextColor="Gray"/>
                                         <Label Text="{Binding Item.ItemName}" 
-                                               Grid.Column="1" 
-                                               VerticalOptions="Center"/>
-                                        <Label Text="{Binding ApplyNum}" 
-                                               Grid.Column="2" 
-                                               VerticalOptions="Center"
+                                               FontSize="18" 
+                                               FontAttributes="Bold"
+                                               LineBreakMode="TailTruncation"/>
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="1" 
+                                                        HorizontalOptions="End" 
+                                                        Spacing="5">
+                                        <Label Text="申请状态" 
+                                               FontSize="12" 
+                                               TextColor="Gray"
                                                HorizontalOptions="End"/>
                                         <Label Text="{Binding ApplyStatus, Converter={StaticResource ApplyStatusConverter}}" 
-                                               Grid.Column="3" 
-                                               VerticalOptions="Center"/>
+                                               TextColor="{Binding ApplyStatus, Converter={StaticResource ApplyStatusColorConverter}}"
+                                               FontAttributes="Bold"
+                                               HorizontalOptions="End"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+                                
+                                <Grid Grid.Row="1" 
+                                      Grid.Column="0" 
+                                      Grid.ColumnSpan="2"
+                                      ColumnDefinitions="*,*"
+                                      ColumnSpacing="20">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="5">
+                                        <Label Text="申请人" 
+                                               FontSize="12" 
+                                               TextColor="Gray"/>
                                         <Label Text="{Binding UserName}" 
-                                               Grid.Column="4" 
-                                               VerticalOptions="Center"/>
+                                               FontSize="14"/>
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="1" 
+                                                        HorizontalOptions="End" 
+                                                        Spacing="5">
+                                        <Label Text="申请时间" 
+                                               FontSize="12" 
+                                               TextColor="Gray"
+                                               HorizontalOptions="End"/>
+                                        <Label Text="{Binding ApplyDate, StringFormat='{0:yyyy-MM-dd HH:mm}'}" 
+                                               FontSize="14"
+                                               HorizontalOptions="End"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+                                
+                                <Grid Grid.Row="2" 
+                                      Grid.Column="0" 
+                                      Grid.ColumnSpan="2"
+                                      ColumnDefinitions="*,*"
+                                      ColumnSpacing="20">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="5">
+                                        <Label Text="物品编码" 
+                                               FontSize="12" 
+                                               TextColor="Gray"/>
+                                        <Label Text="{Binding Item.Code}" 
+                                               FontSize="14"/>
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="1" 
+                                                        HorizontalOptions="End" 
+                                                        Spacing="5">
+                                        <Label Text="物品类别" 
+                                               FontSize="12" 
+                                               TextColor="Gray"
+                                               HorizontalOptions="End"/>
+                                        <Label Text="{Binding Item.ItemType, Converter={StaticResource ItemTypeConverter}}" 
+                                               FontSize="14"
+                                               HorizontalOptions="End"/>
+                                    </VerticalStackLayout>
+                                </Grid>
 
-                                        <Button Text="详情" 
-                                                Grid.Column="5"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=DetailCommand}"
-                                                CommandParameter="{Binding Item}"
-                                                Margin="5,0"/>
+                                <Grid Grid.Row="3" 
+                                      Grid.Column="0" 
+                                      Grid.ColumnSpan="2"
+                                      ColumnDefinitions="*,*,*"
+                                      ColumnSpacing="20">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="5">
+                                        <Label Text="申请数量" 
+                                               FontSize="12" 
+                                               TextColor="Gray"/>
+                                        <Label Text="{Binding ApplyNum, StringFormat='{0}'}" 
+                                               FontSize="14"/>
+                                    </VerticalStackLayout>
 
-                                        <Button Text="通过" 
-                                                Grid.Column="6"
-                                                IsVisible="{Binding ApplyStatus, Converter={StaticResource CanConfirmConverter}}"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=ConfirmCommand}"
-                                                CommandParameter="{Binding Item}"
-                                                Margin="5,0"/>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="5">
+                                        <Label Text="单价" 
+                                               FontSize="12" 
+                                               TextColor="Gray"
+                                               />
+                                        <Label Text="{Binding SinglePrice, StringFormat='¥{0:N2}'}" 
+                                               FontSize="14"
+                                               />
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="2" Spacing="5" 
+                                                        HorizontalOptions="End">
+                                            <Label Text="总价" 
+                                                FontSize="12" 
+                                                TextColor="Gray"
+                                                   HorizontalOptions="End"/>
+                                            <Label Text="{Binding TotalPrice, StringFormat='¥{0:N2}'}" 
+                                                FontSize="14"
+                                                TextColor="Green"
+                                                   HorizontalOptions="End"/>
+                                        </VerticalStackLayout>
+                                    
+                                </Grid>
 
-                                        <Button Text="驳回" 
-                                                Grid.Column="7"
-                                                IsVisible="{Binding ApplyStatus, Converter={StaticResource CanConfirmConverter}}"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=RejectCommand}"
-                                                CommandParameter="{Binding Item}"
-                                                BackgroundColor="{StaticResource Error}"
-                                                Margin="5,0"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </Grid>
-            </Border>
-        </VerticalStackLayout>
+                                <HorizontalStackLayout Grid.Row="5" 
+                                                      Grid.Column="0" 
+                                                      Grid.ColumnSpan="2" 
+                                                      HorizontalOptions="End" 
+                                                      Spacing="10">
+                                    <Button Text="详情" 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=DetailCommand}" 
+                                            CommandParameter="{Binding Item}"
+                                            BackgroundColor="{StaticResource Primary}"
+                                            TextColor="White"
+                                            WidthRequest="60"/>
+                                    <Button Text="通过" 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=ConfirmCommand}" 
+                                            CommandParameter="{Binding Item}"
+                                            IsVisible="{Binding ApplyStatus, Converter={StaticResource CanConfirmConverter}}"
+                                            BackgroundColor="Green"
+                                            TextColor="White"
+                                            WidthRequest="60"/>
+                                    <Button Text="驳回" 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=RejectCommand}" 
+                                            CommandParameter="{Binding Item}"
+                                            IsVisible="{Binding ApplyStatus, Converter={StaticResource CanConfirmConverter}}"
+                                            BackgroundColor="Red"
+                                            TextColor="White"
+                                            WidthRequest="60"/>
+                                </HorizontalStackLayout>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
     </ScrollView>
 </ContentPage> 

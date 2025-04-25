@@ -22,71 +22,10 @@ namespace OfficeMgtAdmin.Views
             ImportDatePicker.Date = DateTime.Now;
             
             // 设置输入事件处理
-            ImportNumEntry.TextChanged += OnImportNumTextChanged;
-            SinglePriceEntry.TextChanged += OnSinglePriceTextChanged;
+            ImportNumEntry.TextChanged += OnNumOrPriceChanged;
+            SinglePriceEntry.TextChanged += OnNumOrPriceChanged;
             
             LoadItems();
-        }
-
-        // 验证入库数量不为负数
-        private void OnImportNumTextChanged(object? sender, TextChangedEventArgs e)
-        {
-            // 如果为空则跳过验证
-            if (string.IsNullOrEmpty(e.NewTextValue))
-                return;
-            
-            // 尝试解析为数字
-            if (int.TryParse(e.NewTextValue, out int value))
-            {
-                // 如果是负数，将其改为0并提示
-                if (value < 0)
-                {
-                    ImportNumEntry.Text = "0";
-                    MainThread.BeginInvokeOnMainThread(async () =>
-                    {
-                        await DisplayAlert("提示", "入库数量不能为负数，已自动更正为0", "确定");
-                    });
-                }
-            }
-            // 如果输入的不是有效数字，恢复之前的值或设为0
-            else if (!string.IsNullOrEmpty(e.NewTextValue))
-            {
-                ImportNumEntry.Text = string.IsNullOrEmpty(e.OldTextValue) ? "0" : e.OldTextValue;
-            }
-        }
-
-        // 验证单价不为负数
-        private void OnSinglePriceTextChanged(object? sender, TextChangedEventArgs e)
-        {
-            // 如果为空则跳过验证
-            if (string.IsNullOrEmpty(e.NewTextValue))
-                return;
-            
-            // 允许小数点输入
-            if (e.NewTextValue == ".")
-            {
-                SinglePriceEntry.Text = "0.";
-                return;
-            }
-            
-            // 尝试解析为小数
-            if (decimal.TryParse(e.NewTextValue, out decimal value))
-            {
-                // 如果是负数，将其改为0并提示
-                if (value < 0)
-                {
-                    SinglePriceEntry.Text = "0";
-                    MainThread.BeginInvokeOnMainThread(async () =>
-                    {
-                        await DisplayAlert("提示", "单价不能为负数，已自动更正为0", "确定");
-                    });
-                }
-            }
-            // 如果输入的不是有效小数，恢复之前的值或设为0
-            else if (!string.IsNullOrEmpty(e.NewTextValue))
-            {
-                SinglePriceEntry.Text = string.IsNullOrEmpty(e.OldTextValue) ? "0" : e.OldTextValue;
-            }
         }
 
         private async void LoadItems()
@@ -111,13 +50,32 @@ namespace OfficeMgtAdmin.Views
             }
         }
 
-        private void OnItemSelected(object sender, SelectedItemChangedEventArgs e)
+        private async void OnItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
             _selectedItem = e.SelectedItem as Item;
             if (_selectedItem != null)
             {
                 ItemLabel.Text = $"已选择: {_selectedItem.ItemName}";
-                CalculateTotalPrice();
+                
+                // 获取最新的入库记录以获取单价
+                var latestImport = await _context.ImportRecords
+                    .Where(i => i.ItemId == _selectedItem.Id && !i.IsDelete)
+                    .OrderByDescending(i => i.ImportDate)
+                    .FirstOrDefaultAsync();
+
+                if (latestImport != null)
+                {
+                    SinglePriceEntry.Text = latestImport.SinglePrice.ToString("0.00");
+                }
+                else
+                {
+                    SinglePriceEntry.Text = "0.00";
+                }
+
+                // 清空数量输入并初始化总价显示
+                ImportNumEntry.Text = string.Empty;
+                TotalPriceLabel.Text = "0.00";
+                TotalPriceLabel.TextColor = Colors.Green;
             }
         }
 
@@ -132,25 +90,35 @@ namespace OfficeMgtAdmin.Views
         {
             try
             {
-                if (int.TryParse(ImportNumEntry.Text, out int importNum) && 
-                    decimal.TryParse(SinglePriceEntry.Text, out decimal singlePrice))
+                int importNum = 0;
+                decimal singlePrice = 0;
+
+                // 检查数量和单价是否都有效
+                bool hasValidNum = !string.IsNullOrWhiteSpace(ImportNumEntry.Text) && 
+                                 int.TryParse(ImportNumEntry.Text, out importNum) && 
+                                 importNum >= 0;
+                
+                bool hasValidPrice = !string.IsNullOrWhiteSpace(SinglePriceEntry.Text) && 
+                                   decimal.TryParse(SinglePriceEntry.Text, out singlePrice) && 
+                                   singlePrice >= 0;
+
+                // 只有当数量和单价都有效时才计算总价
+                if (hasValidNum && hasValidPrice)
                 {
                     decimal totalPrice = importNum * singlePrice;
-                    
                     TotalPriceLabel.Text = totalPrice.ToString("0.00");
-                    
-                    TotalPriceLabel.TextColor = totalPrice > 0 ? Colors.Green : Colors.Black;
+                    TotalPriceLabel.TextColor = Colors.Green;
                 }
                 else
                 {
                     TotalPriceLabel.Text = "0.00";
-                    TotalPriceLabel.TextColor = Colors.Black;
+                    TotalPriceLabel.TextColor = Colors.Green;
                 }
             }
             catch
             {
                 TotalPriceLabel.Text = "0.00";
-                TotalPriceLabel.TextColor = Colors.Black;
+                TotalPriceLabel.TextColor = Colors.Green;
             }
         }
 
@@ -208,15 +176,29 @@ namespace OfficeMgtAdmin.Views
                 return;
             }
 
-            if (!int.TryParse(ImportNumEntry.Text, out int importNum) || importNum <= 0)
+            if (!int.TryParse(ImportNumEntry.Text, out int importNum))
             {
                 await DisplayAlert("提示", "请输入有效的入库数量", "确定");
                 return;
             }
 
-            if (!decimal.TryParse(SinglePriceEntry.Text, out decimal singlePrice) || singlePrice <= 0)
+            if (importNum < 0)
+            {
+                await DisplayAlert("提示", "入库数量不能为负数", "确定");
+                ImportNumEntry.Text = "0";
+                return;
+            }
+
+            if (!decimal.TryParse(SinglePriceEntry.Text, out decimal singlePrice))
             {
                 await DisplayAlert("提示", "请输入有效的单价", "确定");
+                return;
+            }
+
+            if (singlePrice < 0)
+            {
+                await DisplayAlert("提示", "单价不能为负数", "确定");
+                SinglePriceEntry.Text = "0";
                 return;
             }
 
@@ -255,7 +237,7 @@ namespace OfficeMgtAdmin.Views
                 _selectedItem = null;
                 ItemLabel.Text = "请选择物品";
                 TotalPriceLabel.Text = "0.00";
-                TotalPriceLabel.TextColor = Colors.Black;
+                TotalPriceLabel.TextColor = Colors.Green;
 
                 LoadItems();
             }

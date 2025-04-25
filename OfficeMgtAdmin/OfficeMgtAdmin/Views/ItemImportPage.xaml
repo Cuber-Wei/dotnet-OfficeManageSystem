@@ -95,7 +95,7 @@
                                    Text="0.00"
                                    FontSize="16"
                                    FontAttributes="Bold"
-                                   TextColor="#512BD4"
+                                   TextColor="Green"
                                    Padding="10,5" />
                         </VerticalStackLayout>
 

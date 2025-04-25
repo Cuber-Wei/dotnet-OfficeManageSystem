@@ -10,8 +10,8 @@ namespace OfficeMgtAdmin.Converters
             {
                 return status switch
                 {
-                    0 => "申请中",
-                    1 => "已确认",
+                    0 => "待审核",
+                    1 => "已通过",
                     2 => "已驳回",
                     _ => "未知"
                 };

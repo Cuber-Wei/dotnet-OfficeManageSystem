@@ -12,6 +12,7 @@
                 <th>规格</th>
                 <th>型号</th>
                 <th>库存</th>
+                <th>单价</th>
                 <th>操作</th>
             </tr>
         </thead>
@@ -19,6 +20,8 @@
             @foreach (var item in Model)
             {
                 var imagePath = string.IsNullOrEmpty(item.ItemPic) ? "/images/default-item.jpg" : item.ItemPic;
+                var latestImport = ViewBag.LatestImports != null ? 
+                    ((Dictionary<long, decimal>)ViewBag.LatestImports).GetValueOrDefault(item.Id) : 0;
                 
                 <tr>
                     <td style="width: 100px;">
@@ -49,9 +52,10 @@
                     <td>@item.ItemSize</td>
                     <td>@item.ItemVersion</td>
                     <td>@item.ItemNum</td>
+                    <td>@(latestImport > 0 ? $"¥{latestImport:N2}" : "---")</td>
                     <td>
                         <button class="btn btn-primary btn-sm" 
-                                onclick="showApplyModal(@item.Id, '@item.ItemName', @item.ItemNum)">
+                                onclick="showApplyModal('@item.Id', '@item.ItemName', @item.ItemNum)">
                             申请领用
                         </button>
                     </td>
@@ -74,11 +78,11 @@
                     <input type="hidden" id="itemId" name="itemId">
                     <div class="mb-3">
                         <label class="form-label">物品名称</label>
-                        <input type="text" class="form-control" id="itemName" readonly>
+                        <div class="form-control-plaintext" id="itemName"></div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">当前库存</label>
-                        <input type="text" class="form-control" id="currentStock" readonly>
+                        <div class="form-control-plaintext" id="currentStock"></div>
                     </div>
                     <div class="mb-3">
                         <label for="applyNum" class="form-label">申请数量</label>

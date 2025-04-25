@@ -12,10 +12,24 @@ namespace OfficeMgtAdmin.Views
     {
         private readonly ApplicationDbContext _context;
         private readonly string _userJsonPath;
-        private ObservableCollection<ApplyRecordViewModel> _applyRecords;
-        private List<User> _users;
-        private List<ApplyRecordViewModel> _allRecords;
-        private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        private readonly ObservableCollection<ApplyRecordViewModel> _applyRecords;
+        private readonly List<User> _users;
+        private readonly List<ApplyRecordViewModel> _allRecords;
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
+        private bool _hasNoRecords;
+
+        public bool HasNoRecords
+        {
+            get => _hasNoRecords;
+            set
+            {
+                if (_hasNoRecords != value)
+                {
+                    _hasNoRecords = value;
+                    OnPropertyChanged(nameof(HasNoRecords));
+                }
+            }
+        }
 
         public ICommand DetailCommand { get; }
         public ICommand ConfirmCommand { get; }
@@ -31,6 +45,7 @@ namespace OfficeMgtAdmin.Views
             _users = new List<User>();
             ApplyRecordsCollection.ItemsSource = _applyRecords;
             StatusPicker.SelectedIndex = 0; // 默认选择"全部"
+            HasNoRecords = true; // 初始状态为无记录
 
             // 初始化命令
             DetailCommand = new Command<Item>(async (item) => await OnDetailClicked(item));
@@ -51,7 +66,8 @@ namespace OfficeMgtAdmin.Views
                 if (File.Exists(_userJsonPath))
                 {
                     var userJson = File.ReadAllText(_userJsonPath);
-                    _users = JsonSerializer.Deserialize<List<User>>(userJson) ?? new List<User>();
+                    _users.Clear();
+                    _users.AddRange(JsonSerializer.Deserialize<List<User>>(userJson) ?? new List<User>());
                 }
             }
             catch (Exception ex)
@@ -62,8 +78,7 @@ namespace OfficeMgtAdmin.Views
 
         private User? FindUser(long userId)
         {
-            var user = _users.FirstOrDefault(u => u.Id == userId);
-            return user;
+            return _users.FirstOrDefault(u => u.Id == userId);
         }
 
         private async void LoadApplyRecords()
@@ -74,7 +89,7 @@ namespace OfficeMgtAdmin.Views
                 try
                 {
                     var records = await _context.ApplyRecords
-                        .AsNoTracking()  // 使用 AsNoTracking 避免实体跟踪冲突
+                        .AsNoTracking()
                         .Include(r => r.Item)
                         .Where(r => !r.IsDelete)
                         .OrderByDescending(r => r.ApplyDate)
@@ -83,8 +98,14 @@ namespace OfficeMgtAdmin.Views
                     _allRecords.Clear();
                     foreach (var record in records)
                     {
+                        // 获取最新的入库记录以获取价格
+                        var latestImport = await _context.ImportRecords
+                            .Where(i => i.ItemId == record.ItemId && !i.IsDelete)
+                            .OrderByDescending(i => i.ImportDate)
+                            .FirstOrDefaultAsync();
+
                         var user = FindUser(record.UserId);
-                        _allRecords.Add(new ApplyRecordViewModel(record, user));
+                        _allRecords.Add(new ApplyRecordViewModel(record, user, latestImport?.SinglePrice ?? 0));
                     }
 
                     FilterRecords();
@@ -117,6 +138,9 @@ namespace OfficeMgtAdmin.Views
             {
                 _applyRecords.Add(record);
             }
+
+            // 更新无记录状态
+            HasNoRecords = _applyRecords.Count == 0;
         }
 
         private void OnStatusFilterChanged(object sender, EventArgs e)
@@ -129,6 +153,13 @@ namespace OfficeMgtAdmin.Views
             if (item == null)
             {
                 await DisplayAlert("错误", "找不到物品信息", "确定");
+                return;
+            }
+
+            if (item.ItemNum < 0)
+            {
+                await DisplayAlert("提示", "库存数量不能为负数", "确定");
+                item.ItemNum = 0;
                 return;
             }
 
@@ -151,9 +182,26 @@ namespace OfficeMgtAdmin.Views
                         return;
                     }
 
-                    freshItem.ItemNum -= 1;
+                    // 获取并更新申请记录
+                    var applyRecord = await _context.ApplyRecords
+                        .FirstOrDefaultAsync(r => r.ItemId == item.Id && r.ApplyStatus == 0);
+                    
+                    if (applyRecord == null)
+                    {
+                        await DisplayAlert("错误", "找不到待处理的申请记录", "确定");
+                        return;
+                    }
+
+                    // 更新申请记录状态为已通过
+                    applyRecord.ApplyStatus = 1;
+                    applyRecord.UpdateTime = DateTime.Now;
+
+                    // 更新物品库存
+                    freshItem.ItemNum -= applyRecord.ApplyNum;
+                    freshItem.UpdateTime = DateTime.Now;
+
                     await _context.SaveChangesAsync();
-                    await DisplayAlert("提示", "已确认", "确定");
+                    await DisplayAlert("提示", "已通过", "确定");
                 }
                 finally
                 {
@@ -190,7 +238,20 @@ namespace OfficeMgtAdmin.Views
                         return;
                     }
 
-                    freshItem.ItemNum -= 1;
+                    // 获取并更新申请记录
+                    var applyRecord = await _context.ApplyRecords
+                        .FirstOrDefaultAsync(r => r.ItemId == item.Id && r.ApplyStatus == 0);
+                    
+                    if (applyRecord == null)
+                    {
+                        await DisplayAlert("错误", "找不到待处理的申请记录", "确定");
+                        return;
+                    }
+
+                    // 更新申请记录状态为已驳回
+                    applyRecord.ApplyStatus = 2;
+                    applyRecord.UpdateTime = DateTime.Now;
+
                     await _context.SaveChangesAsync();
                     await DisplayAlert("提示", "已驳回", "确定");
                 }
@@ -206,52 +267,6 @@ namespace OfficeMgtAdmin.Views
             {
                 await DisplayAlert("错误", $"驳回失败: {ex.Message}", "确定");
             }
-        }
-
-        private async void OnViewDetailsClicked(object sender, EventArgs e)
-        {
-            var button = (Button)sender;
-            var applyId = (long)button.CommandParameter;
-            var applyRecordVM = _applyRecords.FirstOrDefault(r => r.Id == applyId);
-
-            if (applyRecordVM?.Item != null)
-            {
-                var message = $"物品编码: {applyRecordVM.Item.Code}\n" +
-                             $"物品名称: {applyRecordVM.Item.ItemName}\n" +
-                             $"物品类别: {GetItemTypeName(applyRecordVM.Item.ItemType)}\n" +
-                             $"申请数量: {applyRecordVM.ApplyNum}\n" +
-                             $"申请状态: {GetStatusName(applyRecordVM.ApplyStatus)}\n" +
-                             $"申请时间: {applyRecordVM.ApplyDate:yyyy-MM-dd HH:mm:ss}\n" +
-                             $"申请人: {applyRecordVM.UserName}\n" +
-                             $"更新时间: {applyRecordVM.UpdateTime:yyyy-MM-dd HH:mm:ss}";
-
-                await DisplayAlert($"申请详情", message, "确定");
-            }
-        }
-
-        private string GetItemTypeName(int itemType)
-        {
-            return itemType switch
-            {
-                0 => "纸张",
-                1 => "文具",
-                2 => "刀具",
-                3 => "单据",
-                4 => "礼品",
-                5 => "其它",
-                _ => "未知"
-            };
-        }
-
-        private string GetStatusName(int status)
-        {
-            return status switch
-            {
-                0 => "待审批",
-                1 => "已通过",
-                2 => "已驳回",
-                _ => "未知"
-            };
         }
 
         private async Task OnDetailClicked(Item item)

@@ -30,18 +30,32 @@
 
 @section Scripts {
     <script>
+        // 初始化图片懒加载
+        function initializeLazyLoading() {
+            const lazyImages = document.querySelectorAll('img[data-lazy]');
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.add('lazy-loaded');
+                        observer.unobserve(img);
+                    }
+                });
+            });
+
+            lazyImages.forEach(img => imageObserver.observe(img));
+        }
+
         // 申请领用相关脚本
         function showApplyModal(itemId, itemName, currentStock) {
             document.getElementById('itemId').value = itemId;
-            document.getElementById('itemName').value = itemName;
-            document.getElementById('currentStock').value = currentStock;
+            document.getElementById('itemName').textContent = itemName;
+            document.getElementById('currentStock').textContent = currentStock;
             document.getElementById('applyNum').value = '1';
             
-            // 重置申请表单
-            document.getElementById('applyForm').reset();
-            document.getElementById('itemId').value = itemId;
-            document.getElementById('itemName').value = itemName;
-            document.getElementById('currentStock').value = currentStock;
+            var modal = new bootstrap.Modal(document.getElementById('applyModal'));
+            modal.show();
         }
         
         function submitApply() {
@@ -55,7 +69,7 @@
             
             // 提交申请
             $.ajax({
-                url: '/Home/Apply',
+                url: '/Home/SubmitApply',
                 type: 'POST',
                 data: {
                     itemId: itemId,
@@ -83,20 +97,26 @@
             const typeFilter = document.getElementById('typeFilter').value;
             
             $.ajax({
-                url: '/Home/GetInventoryList',
-                type: 'GET',
-                data: { type: typeFilter },
+                url: '/Home/QueryByType',
+                type: 'POST',
+                data: { itemType: typeFilter === '' ? null : parseInt(typeFilter) },
                 success: function(result) {
                     document.getElementById('inventoryList').innerHTML = result;
+                    // 重新初始化图片懒加载和模态框
+                    initializeLazyLoading();
                 },
-                error: function() {
-                    alert('刷新库存列表失败，请稍后再试');
+                error: function(xhr, status, error) {
+                    alert('脚本库存列表失败，请稍后再试');
+                    console.error('Error:', error);
                 }
             });
         }
         
         // 当页面加载完成时
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化图片懒加载
+            initializeLazyLoading();
+            
             // 绑定查询按钮点击事件
             document.getElementById('btnSearch').addEventListener('click', function() {
                 refreshInventoryList();

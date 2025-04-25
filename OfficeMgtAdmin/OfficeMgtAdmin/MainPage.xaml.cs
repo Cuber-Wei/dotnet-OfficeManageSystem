@@ -31,9 +31,16 @@ namespace OfficeMgtAdmin
                     await DisplayAlert("错误", "用户名或密码不正确", "确定");
                     return;
                 }
-
-                await Navigation.PushAsync(new Views.AdminMainPage());
-                Navigation.RemovePage(this);
+                else if (user.UserId == "admin" && user.Id == 1)
+                {
+                    await Navigation.PushAsync(new Views.AdminMainPage());
+                    Navigation.RemovePage(this);
+                }
+                else
+                {
+                    await DisplayAlert("错误", "您没有管理员权限！", "确定");
+                    return;
+                }
             }
             catch (Exception ex)
             {
