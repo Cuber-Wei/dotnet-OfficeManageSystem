@@ -19,7 +19,7 @@ create table if not exists item
     createTime  datetime default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete    tinyint  default 0                 not null comment '是否删除',
-    index idx_code (code),
+    index idx_code (code)
 ) comment '物品' collate = utf8mb4_unicode_ci;
 
 -- 入库表
@@ -33,7 +33,7 @@ create table if not exists import_record
     createTime  datetime default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete    tinyint  default 0                 not null comment '是否删除',
-    index idx_itemId (itemId),
+    index idx_itemId (itemId)
 ) comment '领用申请' collate = utf8mb4_unicode_ci;
 
 -- 领用申请表
