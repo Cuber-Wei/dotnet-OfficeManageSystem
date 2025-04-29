@@ -194,6 +194,12 @@ namespace OfficeMgtAdmin.Views
             _selectedImagePath = null;
             ImagePathLabel.Text = string.Empty;
             PreviewImage.Source = null;
+            _editingItem = null;
+        }
+
+        private void OnNewItemClicked(object sender, EventArgs e)
+        {
+            ClearEntries();
         }
 
         private async void OnDeleteClicked(object sender, EventArgs e)
@@ -281,7 +287,8 @@ namespace OfficeMgtAdmin.Views
                 if (!string.IsNullOrEmpty(item.ItemPic))
                 {
                     ImagePathLabel.Text = Path.GetFileName(item.ItemPic);
-                    PreviewImage.Source = ImageSource.FromFile(item.ItemPic);
+                    string fullImagePath = Path.Combine(_webImagesPath, Path.GetFileName(item.ItemPic));
+                    PreviewImage.Source = ImageSource.FromFile(fullImagePath);
                 }
                 else
                 {

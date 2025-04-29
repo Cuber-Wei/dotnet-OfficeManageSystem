@@ -10,7 +10,7 @@
                     StrokeShape="RoundRectangle 5"
                     Padding="15"
                     Margin="0,0,0,20">
-                <Grid ColumnDefinitions="Auto,*" 
+                <Grid ColumnDefinitions="Auto,*,Auto" 
                       RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" 
                       ColumnSpacing="15" 
                       RowSpacing="10">
@@ -22,6 +22,12 @@
                            Grid.Row="0" 
                            Grid.Column="1" 
                            Placeholder="请输入物品编码"/>
+                    <Button Text="新建" 
+                            Grid.Row="0" 
+                            Grid.Column="2" 
+                            Clicked="OnNewItemClicked"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="White"/>
 
                     <Label Text="物品名称:" 
                            Grid.Row="1" 
@@ -110,7 +116,7 @@
                     <Button x:Name="SaveButton" 
                             Grid.Row="8" 
                             Grid.Column="0" 
-                            Grid.ColumnSpan="2" 
+                            Grid.ColumnSpan="3" 
                             WidthRequest="200"
                             HorizontalOptions="Center"
                             Text="保存" 

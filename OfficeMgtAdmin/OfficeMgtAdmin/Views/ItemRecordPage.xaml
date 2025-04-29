@@ -76,7 +76,7 @@
                                         StrokeThickness="1"
                                         StrokeShape="RoundRectangle 5"
                                         Padding="10">
-                                    <Grid ColumnDefinitions="120,80,100,*" 
+                                    <Grid ColumnDefinitions="120,80,100,100" 
                                           ColumnSpacing="10">
                                         <Label Text="{Binding ApplyDate, StringFormat='{0:yyyy-MM-dd}'}" 
                                                Grid.Column="0" 
@@ -85,10 +85,10 @@
                                                Grid.Column="1" 
                                                VerticalOptions="Center"
                                                HorizontalOptions="End"/>
-                                        <Label Text="{Binding ApplyStatus, Converter={StaticResource ApplyStatusConverter}}" 
+                                        <Label Text="{Binding UserName}" 
                                                Grid.Column="2" 
                                                VerticalOptions="Center"/>
-                                        <Label Text="{Binding Remark}" 
+                                        <Label Text="{Binding ApplyStatus, Converter={StaticResource ApplyStatusConverter}}" 
                                                Grid.Column="3" 
                                                VerticalOptions="Center"/>
                                     </Grid>
